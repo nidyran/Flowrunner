@@ -24,16 +24,19 @@ package dev.flowrunner.config;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import lombok.RequiredArgsConstructor;
 import org.assertj.core.groups.Tuple;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.TestConstructor;
+import org.springframework.test.context.TestConstructor.AutowireMode;
 
 @SpringBootTest
+@RequiredArgsConstructor
+@TestConstructor(autowireMode = AutowireMode.ALL)
 class FlowPropertiesTests {
 
-    @Autowired
-    private FlowProperties flowProperties;
+    private final FlowProperties flowProperties;
 
     @Test
     void bindsDimensionsFromConfiguration() {
