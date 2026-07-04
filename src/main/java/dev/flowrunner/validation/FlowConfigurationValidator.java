@@ -27,6 +27,7 @@ import dev.flowrunner.properties.FlowProperties;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.apache.logging.log4j.util.Strings;
 import org.jspecify.annotations.NonNull;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.ApplicationArguments;
@@ -46,17 +47,19 @@ public class FlowConfigurationValidator implements ApplicationRunner {
 
     @Override
     public void run(@NonNull ApplicationArguments args) {
-        preLoadConfiguration.ifAvailable(hook -> hook.preLoadConfiguration(flowProperties.dimensions()));
+        preLoadConfiguration.orderedStream().forEach(hook -> hook.preLoadConfiguration(flowProperties.dimensions()));
 
         validate();
 
-        postLoadConfiguration.ifAvailable(hook -> hook.postLoadConfiguration(flowProperties.dimensions()));
+        postLoadConfiguration
+                .orderedStream()
+                .forEach(hook -> hook.postLoadConfiguration(flowProperties.dimensions()));
     }
 
     public void validate() {
         List<String> errors = new ArrayList<>();
         JsonNode configuration = jsonMapper.valueToTree(flowProperties.configuration());
-        validate(flowProperties.dimensions(), configuration, "", errors);
+        validate(flowProperties.dimensions(), configuration, Strings.EMPTY, errors);
         if (!errors.isEmpty()) {
             throw new FlowConfigurationValidationException(errors);
         }
