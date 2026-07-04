@@ -1,0 +1,13 @@
+flowrunner:
+  flow:
+    dimensions:
+      - key: environment
+        name: Environment
+        required: true
+        children:
+          - key: application
+            name: Application
+            required: true
+    configuration:
+      environment:
+        value: dev

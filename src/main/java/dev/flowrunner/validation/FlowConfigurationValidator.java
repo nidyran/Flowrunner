@@ -27,6 +27,7 @@ import dev.flowrunner.properties.FlowProperties;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.jspecify.annotations.NonNull;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
@@ -38,13 +39,13 @@ import tools.jackson.databind.json.JsonMapper;
 @RequiredArgsConstructor
 public class FlowConfigurationValidator implements ApplicationRunner {
 
+    private final ObjectProvider<PostLoadConfiguration> postLoadConfiguration;
+    private final ObjectProvider<PreLoadConfiguration> preLoadConfiguration;
     private final FlowProperties flowProperties;
     private final JsonMapper jsonMapper;
-    private final ObjectProvider<PreLoadConfiguration> preLoadConfiguration;
-    private final ObjectProvider<PostLoadConfiguration> postLoadConfiguration;
 
     @Override
-    public void run(ApplicationArguments args) {
+    public void run(@NonNull ApplicationArguments args) {
         preLoadConfiguration.ifAvailable(hook -> hook.preLoadConfiguration(flowProperties.dimensions()));
 
         validate();
@@ -68,9 +69,8 @@ public class FlowConfigurationValidator implements ApplicationRunner {
 
         for (FlowDimension dimension : dimensions) {
             String dimensionPath = path + dimension.key();
-            JsonNode node = configuration == null ? null : configuration.get(dimension.key());
-            JsonNode value = node == null ? null : node.get("value");
-            boolean hasValue = value != null && !value.isNull();
+            JsonNode node = configuration.path(dimension.key());
+            boolean hasValue = !node.path("value").isMissingNode() && !node.path("value").isNull();
 
             if (dimension.required() && !hasValue) {
                 errors.add("Missing required dimension '%s'".formatted(dimensionPath));
