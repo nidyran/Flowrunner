@@ -20,11 +20,12 @@
  * SOFTWARE.
  * 
  */
-package dev.flowrunner.properties;
+package dev.flowrunner.validation;
 
+import dev.flowrunner.properties.FlowDimension;
 import java.util.List;
-import org.springframework.boot.context.properties.ConfigurationProperties;
 
-@ConfigurationProperties(prefix = "flowrunner.flow")
-public record FlowProperties(List<FlowDimension> dimensions, FlowConfiguration configuration) {
+public interface PostLoadConfiguration {
+
+    void postLoadConfiguration(List<FlowDimension> dimensions);
 }

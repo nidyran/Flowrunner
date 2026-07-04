@@ -18,7 +18,7 @@ flowrunner:
                 name: Channel
                 defaultValue: Web
                 required: false
-    instance:
+    configuration:
       environment:
         value: dev
         application:

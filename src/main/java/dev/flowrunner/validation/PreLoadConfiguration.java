@@ -22,11 +22,10 @@
  */
 package dev.flowrunner.validation;
 
+import dev.flowrunner.properties.FlowDimension;
 import java.util.List;
 
-public class FlowInstanceValidationException extends RuntimeException {
+public interface PreLoadConfiguration {
 
-    public FlowInstanceValidationException(List<String> errors) {
-        super("Invalid flow instance configuration:%n%s".formatted(String.join(System.lineSeparator(), errors)));
-    }
+    void preLoadConfiguration(List<FlowDimension> dimensions);
 }

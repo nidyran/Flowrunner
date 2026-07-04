@@ -22,19 +22,11 @@
  */
 package dev.flowrunner.validation;
 
-import lombok.RequiredArgsConstructor;
-import org.springframework.boot.ApplicationArguments;
-import org.springframework.boot.ApplicationRunner;
-import org.springframework.stereotype.Component;
+import java.util.List;
 
-@Component
-@RequiredArgsConstructor
-public class FlowInstanceValidationRunner implements ApplicationRunner {
+public class FlowConfigurationValidationException extends RuntimeException {
 
-    private final FlowInstanceValidator flowInstanceValidator;
-
-    @Override
-    public void run(ApplicationArguments args) {
-        flowInstanceValidator.validate();
+    public FlowConfigurationValidationException(List<String> errors) {
+        super("Invalid flow configuration:%n%s".formatted(String.join(System.lineSeparator(), errors)));
     }
 }

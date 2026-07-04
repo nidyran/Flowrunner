@@ -22,9 +22,7 @@
  */
 package dev.flowrunner.properties;
 
-import java.util.List;
-import org.springframework.boot.context.properties.ConfigurationProperties;
+import java.util.LinkedHashMap;
 
-@ConfigurationProperties(prefix = "flowrunner.flow")
-public record FlowProperties(List<FlowDimension> dimensions, FlowConfiguration configuration) {
+public class FlowConfiguration extends LinkedHashMap<String, Object> {
 }
