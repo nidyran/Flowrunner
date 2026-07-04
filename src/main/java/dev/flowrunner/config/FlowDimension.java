@@ -22,5 +22,7 @@
  */
 package dev.flowrunner.config;
 
-public record FlowDimension(String key, String name) {
+import org.springframework.boot.context.properties.bind.DefaultValue;
+
+public record FlowDimension(String key, String name, String defaultValue, @DefaultValue("false") boolean required) {
 }

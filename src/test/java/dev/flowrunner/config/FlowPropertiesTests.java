@@ -38,10 +38,14 @@ class FlowPropertiesTests {
     @Test
     void bindsDimensionsFromConfiguration() {
         assertThat(flowProperties.dimensions())
-                .extracting(FlowDimension::key, FlowDimension::name)
+                .extracting(
+                        FlowDimension::key,
+                        FlowDimension::name,
+                        FlowDimension::defaultValue,
+                        FlowDimension::required)
                 .containsExactly(
-                        Tuple.tuple("application", "Application"),
-                        Tuple.tuple("environment", "Environment"),
-                        Tuple.tuple("channel", "Channel"));
+                        Tuple.tuple("application", "Application", null, true),
+                        Tuple.tuple("environment", "Environment", "Dev", true),
+                        Tuple.tuple("channel", "Channel", "Web", false));
     }
 }

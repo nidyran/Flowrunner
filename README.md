@@ -17,6 +17,8 @@ A **dimension** describes an axis a flow can be run against. Dimensions are opti
 
 - `key` — the identifier used to reference the dimension
 - `name` — a human-readable label
+- `defaultValue` — optional value used when none is supplied at run time
+- `required` — whether a value for this dimension must be supplied to run the flow (defaults to `false`)
 
 Example dimensions:
 
@@ -32,10 +34,15 @@ flowrunner:
     dimensions:
       - key: application
         name: Application
+        required: true
       - key: environment
         name: Environment
+        defaultValue: Dev
+        required: true
       - key: channel
         name: Channel
+        defaultValue: Web
+        required: false
 ```
 
 ## Star history

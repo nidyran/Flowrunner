@@ -7,7 +7,12 @@ flowrunner:
     dimensions:
       - key: application
         name: Application
+        required: true
       - key: environment
         name: Environment
+        defaultValue: Dev
+        required: true
       - key: channel
         name: Channel
+        defaultValue: Web
+        required: false
