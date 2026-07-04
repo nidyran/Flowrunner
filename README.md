@@ -37,3 +37,7 @@ flowrunner:
       - key: channel
         name: Channel
 ```
+
+## Star history
+
+[![Star History Chart](https://api.star-history.com/svg?repos=nidyran/Flowrunner&type=Date)](https://star-history.com/#nidyran/Flowrunner&Date)
