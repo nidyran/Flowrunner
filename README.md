@@ -18,7 +18,7 @@ A flow cannot run without at least one **dimension** configured. A dimension des
 - `key` — the identifier used to reference the dimension
 - `name` — a human-readable label
 
-Typical dimensions include:
+Example dimensions:
 
 - **Application** — which app the flow targets, e.g. `Customer`, `Backoffice`, `Customer Service App`
 - **Environment** — which environment to run against, e.g. `Local stack`, `Dev`, `UAT`
