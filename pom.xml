@@ -13,8 +13,8 @@
 
     <licenses>
         <license>
-            <name>Apache License, Version 2.0</name>
-            <url>https://www.apache.org/licenses/LICENSE-2.0.txt</url>
+            <name>MIT License</name>
+            <url>https://opensource.org/licenses/MIT</url>
         </license>
     </licenses>
 
@@ -33,6 +33,7 @@
         <maven-compiler-plugin.version>3.14.0</maven-compiler-plugin.version>
         <spring-boot.version>4.1.0</spring-boot.version>
         <rewrite-maven-plugin.version>6.41.0</rewrite-maven-plugin.version>
+        <rewrite-static-analysis.version>2.5.0</rewrite-static-analysis.version>
     </properties>
 
     <dependencyManagement>
@@ -69,8 +70,18 @@
                 <configuration>
                     <activeRecipes>
                         <recipe>org.openrewrite.maven.BestPractices</recipe>
+                        <recipe>org.openrewrite.staticanalysis.CodeCleanup</recipe>
+                        <recipe>org.openrewrite.java.format.AutoFormat</recipe>
+                        <recipe>dev.flowrunner.rewrite.LicenseHeader</recipe>
                     </activeRecipes>
                 </configuration>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.openrewrite.recipe</groupId>
+                        <artifactId>rewrite-static-analysis</artifactId>
+                        <version>${rewrite-static-analysis.version}</version>
+                    </dependency>
+                </dependencies>
                 <executions>
                     <execution>
                         <id>rewrite-on-build</id>
