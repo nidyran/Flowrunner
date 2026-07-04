@@ -18,3 +18,10 @@ flowrunner:
                 name: Channel
                 defaultValue: Web
                 required: false
+    instance:
+      environment:
+        value: dev
+        application:
+          value: Customer
+          channel:
+            value: Web

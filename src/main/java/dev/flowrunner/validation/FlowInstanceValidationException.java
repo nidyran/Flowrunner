@@ -20,12 +20,13 @@
  * SOFTWARE.
  * 
  */
-package dev.flowrunner.properties;
+package dev.flowrunner.validation;
 
 import java.util.List;
-import java.util.Map;
-import org.springframework.boot.context.properties.ConfigurationProperties;
 
-@ConfigurationProperties(prefix = "flowrunner.flow")
-public record FlowProperties(List<FlowDimension> dimensions, Map<String, Object> instance) {
+public class FlowInstanceValidationException extends RuntimeException {
+
+    public FlowInstanceValidationException(List<String> errors) {
+        super("Invalid flow instance configuration:%n%s".formatted(String.join(System.lineSeparator(), errors)));
+    }
 }

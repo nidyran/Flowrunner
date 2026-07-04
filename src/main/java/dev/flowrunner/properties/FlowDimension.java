@@ -22,9 +22,8 @@
  */
 package dev.flowrunner.properties;
 
-import org.springframework.boot.context.properties.bind.DefaultValue;
-
 import java.util.List;
+import org.springframework.boot.context.properties.bind.DefaultValue;
 
 public record FlowDimension(
         String key, String name, String defaultValue, @DefaultValue("false") boolean required, List<FlowDimension> children) {

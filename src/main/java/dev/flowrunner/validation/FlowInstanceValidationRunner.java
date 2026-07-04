@@ -20,12 +20,21 @@
  * SOFTWARE.
  * 
  */
-package dev.flowrunner.properties;
+package dev.flowrunner.validation;
 
-import java.util.List;
-import java.util.Map;
-import org.springframework.boot.context.properties.ConfigurationProperties;
+import lombok.RequiredArgsConstructor;
+import org.springframework.boot.ApplicationArguments;
+import org.springframework.boot.ApplicationRunner;
+import org.springframework.stereotype.Component;
 
-@ConfigurationProperties(prefix = "flowrunner.flow")
-public record FlowProperties(List<FlowDimension> dimensions, Map<String, Object> instance) {
+@Component
+@RequiredArgsConstructor
+public class FlowInstanceValidationRunner implements ApplicationRunner {
+
+    private final FlowInstanceValidator flowInstanceValidator;
+
+    @Override
+    public void run(ApplicationArguments args) {
+        flowInstanceValidator.validate();
+    }
 }
