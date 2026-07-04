@@ -27,10 +27,5 @@ import org.springframework.boot.context.properties.bind.DefaultValue;
 import java.util.List;
 
 public record FlowDimension(
-        String key,
-        String name,
-        String defaultValue,
-        @DefaultValue("false") boolean required,
-        String relatedTo,
-        List<FlowDimension> children) {
+        String key, String name, String defaultValue, @DefaultValue("false") boolean required, List<FlowDimension> children) {
 }

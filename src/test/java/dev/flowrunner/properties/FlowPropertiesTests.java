@@ -50,7 +50,6 @@ class FlowPropertiesTests {
         registry.add("flowrunner.flow.dimensions[0].children[0].key", () -> "application");
         registry.add("flowrunner.flow.dimensions[0].children[0].name", () -> "Application");
         registry.add("flowrunner.flow.dimensions[0].children[0].required", () -> true);
-        registry.add("flowrunner.flow.dimensions[0].children[0].relatedTo", () -> "environment");
 
         registry.add(
                 "flowrunner.flow.dimensions[0].children[0].children[0].key", () -> "channel");
@@ -60,9 +59,6 @@ class FlowPropertiesTests {
                 "flowrunner.flow.dimensions[0].children[0].children[0].defaultValue", () -> "Web");
         registry.add(
                 "flowrunner.flow.dimensions[0].children[0].children[0].required", () -> false);
-        registry.add(
-                "flowrunner.flow.dimensions[0].children[0].children[0].relatedTo",
-                () -> "application");
     }
 
     @Test
@@ -77,8 +73,8 @@ class FlowPropertiesTests {
         FlowDimension environment = flowProperties.dimensions().get(0);
 
         assertThat(environment.children())
-                .extracting(FlowDimension::key, FlowDimension::name, FlowDimension::required, FlowDimension::relatedTo)
-                .containsExactly(Tuple.tuple("application", "Application", true, "environment"));
+                .extracting(FlowDimension::key, FlowDimension::name, FlowDimension::required)
+                .containsExactly(Tuple.tuple("application", "Application", true));
 
         FlowDimension application = environment.children().get(0);
 
@@ -87,8 +83,7 @@ class FlowPropertiesTests {
                         FlowDimension::key,
                         FlowDimension::name,
                         FlowDimension::defaultValue,
-                        FlowDimension::required,
-                        FlowDimension::relatedTo)
-                .containsExactly(Tuple.tuple("channel", "Channel", "Web", false, "application"));
+                        FlowDimension::required)
+                .containsExactly(Tuple.tuple("channel", "Channel", "Web", false));
     }
 }

@@ -10,13 +10,11 @@ flowrunner:
         defaultValue: local
         required: true
         children:
-        - key: application
-          name: Application
-          required: true
-          relatedTo: environment
-          children:
-            - key: channel
-              name: Channel
-              defaultValue: Web
-              required: false
-              relatedTo: application
+          - key: application
+            name: Application
+            required: true
+            children:
+              - key: channel
+                name: Channel
+                defaultValue: Web
+                required: false
