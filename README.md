@@ -44,7 +44,3 @@ flowrunner:
         defaultValue: Web
         required: false
 ```
-
-## Star History
-
-[![Star History Chart](https://api.star-history.com/chart?repos=nidyran/Flowrunner&type=date&legend=top-left)](https://www.star-history.com/?repos=nidyran%2FFlowrunner&type=date&legend=top-left)
