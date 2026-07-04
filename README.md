@@ -23,6 +23,12 @@ A **dimension** describes an axis a flow can be run against. Dimensions are opti
 
 Dimensions can nest: a dimension's `children` are themselves dimensions, so hierarchies like environment → application → channel can be expressed as a single tree instead of a flat list, with the tree structure itself expressing the parent/child relationship.
 
+Example values for a typical hierarchy:
+
+- **Environment** — e.g. `local`, `dev`, `uat`
+- **Application** — e.g. `Customer`, `Backoffice`, `Customer Service App`
+- **Channel** — e.g. `Web`, `Mob`, `API`
+
 Dimensions are declared under `flowrunner.flow.dimensions` in configuration:
 
 ```yaml
