@@ -20,9 +20,17 @@
  * SOFTWARE.
  * 
  */
-package dev.flowrunner.config;
+package dev.flowrunner.properties;
 
 import org.springframework.boot.context.properties.bind.DefaultValue;
 
-public record FlowDimension(String key, String name, String defaultValue, @DefaultValue("false") boolean required) {
+import java.util.List;
+
+public record FlowDimension(
+        String key,
+        String name,
+        String defaultValue,
+        @DefaultValue("false") boolean required,
+        String relatedTo,
+        List<FlowDimension> children) {
 }

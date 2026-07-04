@@ -20,7 +20,7 @@
  * SOFTWARE.
  * 
  */
-package dev.flowrunner.config;
+package dev.flowrunner.properties;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -42,32 +42,53 @@ class FlowPropertiesTests {
 
     @DynamicPropertySource
     static void dimensions(DynamicPropertyRegistry registry) {
-        registry.add("flowrunner.flow.dimensions[0].key", () -> "application");
-        registry.add("flowrunner.flow.dimensions[0].name", () -> "Application");
+        registry.add("flowrunner.flow.dimensions[0].key", () -> "environment");
+        registry.add("flowrunner.flow.dimensions[0].name", () -> "Environment");
+        registry.add("flowrunner.flow.dimensions[0].defaultValue", () -> "local");
         registry.add("flowrunner.flow.dimensions[0].required", () -> true);
 
-        registry.add("flowrunner.flow.dimensions[1].key", () -> "environment");
-        registry.add("flowrunner.flow.dimensions[1].name", () -> "Environment");
-        registry.add("flowrunner.flow.dimensions[1].defaultValue", () -> "Dev");
-        registry.add("flowrunner.flow.dimensions[1].required", () -> true);
+        registry.add("flowrunner.flow.dimensions[0].children[0].key", () -> "application");
+        registry.add("flowrunner.flow.dimensions[0].children[0].name", () -> "Application");
+        registry.add("flowrunner.flow.dimensions[0].children[0].required", () -> true);
+        registry.add("flowrunner.flow.dimensions[0].children[0].relatedTo", () -> "environment");
 
-        registry.add("flowrunner.flow.dimensions[2].key", () -> "channel");
-        registry.add("flowrunner.flow.dimensions[2].name", () -> "Channel");
-        registry.add("flowrunner.flow.dimensions[2].defaultValue", () -> "Web");
-        registry.add("flowrunner.flow.dimensions[2].required", () -> false);
+        registry.add(
+                "flowrunner.flow.dimensions[0].children[0].children[0].key", () -> "channel");
+        registry.add(
+                "flowrunner.flow.dimensions[0].children[0].children[0].name", () -> "Channel");
+        registry.add(
+                "flowrunner.flow.dimensions[0].children[0].children[0].defaultValue", () -> "Web");
+        registry.add(
+                "flowrunner.flow.dimensions[0].children[0].children[0].required", () -> false);
+        registry.add(
+                "flowrunner.flow.dimensions[0].children[0].children[0].relatedTo",
+                () -> "application");
     }
 
     @Test
     void injectsDimensionsConfiguredAtStartup() {
         assertThat(flowProperties.dimensions())
+                .extracting(FlowDimension::key, FlowDimension::name, FlowDimension::defaultValue, FlowDimension::required)
+                .containsExactly(Tuple.tuple("environment", "Environment", "local", true));
+    }
+
+    @Test
+    void injectsNestedChildDimensions() {
+        FlowDimension environment = flowProperties.dimensions().get(0);
+
+        assertThat(environment.children())
+                .extracting(FlowDimension::key, FlowDimension::name, FlowDimension::required, FlowDimension::relatedTo)
+                .containsExactly(Tuple.tuple("application", "Application", true, "environment"));
+
+        FlowDimension application = environment.children().get(0);
+
+        assertThat(application.children())
                 .extracting(
                         FlowDimension::key,
                         FlowDimension::name,
                         FlowDimension::defaultValue,
-                        FlowDimension::required)
-                .containsExactly(
-                        Tuple.tuple("application", "Application", null, true),
-                        Tuple.tuple("environment", "Environment", "Dev", true),
-                        Tuple.tuple("channel", "Channel", "Web", false));
+                        FlowDimension::required,
+                        FlowDimension::relatedTo)
+                .containsExactly(Tuple.tuple("channel", "Channel", "Web", false, "application"));
     }
 }

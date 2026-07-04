@@ -20,7 +20,7 @@
  * SOFTWARE.
  * 
  */
-package dev.flowrunner.config;
+package dev.flowrunner.properties;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 

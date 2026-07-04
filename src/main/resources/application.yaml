@@ -5,14 +5,18 @@ spring:
 flowrunner:
   flow:
     dimensions:
-      - key: application
-        name: Application
-        required: true
       - key: environment
         name: Environment
-        defaultValue: Dev
+        defaultValue: local
         required: true
-      - key: channel
-        name: Channel
-        defaultValue: Web
-        required: false
+        children:
+        - key: application
+          name: Application
+          required: true
+          relatedTo: environment
+          children:
+            - key: channel
+              name: Channel
+              defaultValue: Web
+              required: false
+              relatedTo: application
