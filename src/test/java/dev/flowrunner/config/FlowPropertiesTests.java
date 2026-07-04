@@ -40,7 +40,8 @@ class FlowPropertiesTests {
         assertThat(flowProperties.dimensions())
                 .extracting(FlowDimension::key, FlowDimension::name)
                 .containsExactly(
+                        Tuple.tuple("application", "Application"),
                         Tuple.tuple("environment", "Environment"),
-                        Tuple.tuple("locale", "Locale"));
+                        Tuple.tuple("channel", "Channel"));
     }
 }

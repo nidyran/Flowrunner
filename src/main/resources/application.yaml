@@ -5,7 +5,9 @@ spring:
 flowrunner:
   flow:
     dimensions:
+      - key: application
+        name: Application
       - key: environment
         name: Environment
-      - key: locale
-        name: Locale
+      - key: channel
+        name: Channel

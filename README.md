@@ -13,10 +13,16 @@ Flowrunner lets developers and testers define, configure, and run API flows — 
 
 ### Flow dimensions
 
-A flow cannot run without at least one **dimension** configured. A dimension describes an axis a flow can be run against — for example the environment to target (`dev`, `staging`, `prod`) or the locale to use (`en`, `fr`). Each dimension has:
+A flow cannot run without at least one **dimension** configured. A dimension describes an axis a flow can be run against. Each dimension has:
 
 - `key` — the identifier used to reference the dimension
 - `name` — a human-readable label
+
+Typical dimensions include:
+
+- **Application** — which app the flow targets, e.g. `Customer`, `Backoffice`, `Customer Service App`
+- **Environment** — which environment to run against, e.g. `Local stack`, `Dev`, `UAT`
+- **Channel** — which channel the flow simulates, e.g. `Web`, `Mob`, `API`
 
 Dimensions are declared under `flowrunner.flow.dimensions` in configuration:
 
@@ -24,8 +30,10 @@ Dimensions are declared under `flowrunner.flow.dimensions` in configuration:
 flowrunner:
   flow:
     dimensions:
+      - key: application
+        name: Application
       - key: environment
         name: Environment
-      - key: locale
-        name: Locale
+      - key: channel
+        name: Channel
 ```
