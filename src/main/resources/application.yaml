@@ -8,18 +8,10 @@ flowrunner:
       - key: application
         name: Application
         required: true
-        allowedValues:
-          - Customer
-          - Backoffice
-          - Customer Service App
       - key: environment
         name: Environment
         defaultValue: Dev
         required: true
-        allowedValues:
-          - Local stack
-          - Dev
-          - UAT
       - key: channel
         name: Channel
         defaultValue: Web

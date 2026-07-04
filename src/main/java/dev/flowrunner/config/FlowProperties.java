@@ -22,8 +22,9 @@
  */
 package dev.flowrunner.config;
 
-import java.util.List;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+
+import java.util.List;
 
 @ConfigurationProperties(prefix = "flowrunner.flow")
 public record FlowProperties(List<FlowDimension> dimensions) {

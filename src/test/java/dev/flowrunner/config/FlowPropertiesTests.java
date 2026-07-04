@@ -24,7 +24,6 @@ package dev.flowrunner.config;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.util.List;
 import org.assertj.core.groups.Tuple;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,17 +42,10 @@ class FlowPropertiesTests {
                         FlowDimension::key,
                         FlowDimension::name,
                         FlowDimension::defaultValue,
-                        FlowDimension::required,
-                        FlowDimension::allowedValues)
+                        FlowDimension::required)
                 .containsExactly(
-                        Tuple.tuple(
-                                "application",
-                                "Application",
-                                null,
-                                true,
-                                List.of("Customer", "Backoffice", "Customer Service App")),
-                        Tuple.tuple(
-                                "environment", "Environment", "Dev", true, List.of("Local stack", "Dev", "UAT")),
-                        Tuple.tuple("channel", "Channel", "Web", false, null));
+                        Tuple.tuple("application", "Application", null, true),
+                        Tuple.tuple("environment", "Environment", "Dev", true),
+                        Tuple.tuple("channel", "Channel", "Web", false));
     }
 }
