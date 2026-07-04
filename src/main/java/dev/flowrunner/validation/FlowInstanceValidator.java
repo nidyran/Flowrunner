@@ -29,18 +29,18 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 @Component
 @RequiredArgsConstructor
 public class FlowInstanceValidator {
 
     private final FlowProperties flowProperties;
-    private final ObjectMapper objectMapper;
+    private final JsonMapper jsonMapper;
 
     public void validate() {
         List<String> errors = new ArrayList<>();
-        JsonNode instance = objectMapper.valueToTree(flowProperties.instance());
+        JsonNode instance = jsonMapper.valueToTree(flowProperties.instance());
         validate(flowProperties.dimensions(), instance, "", errors);
         if (!errors.isEmpty()) {
             throw new FlowInstanceValidationException(errors);

@@ -30,11 +30,11 @@ import dev.flowrunner.properties.FlowProperties;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
-import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 class FlowInstanceValidatorTests {
 
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final JsonMapper jsonMapper = JsonMapper.builder().build();
 
     private static List<FlowDimension> dimensions() {
         return List.of(new FlowDimension(
@@ -61,7 +61,7 @@ class FlowInstanceValidatorTests {
                         Map.of("value", "Customer", "channel", Map.of("value", "Web"))));
 
         FlowInstanceValidator validator =
-                new FlowInstanceValidator(new FlowProperties(dimensions(), instance), objectMapper);
+                new FlowInstanceValidator(new FlowProperties(dimensions(), instance), jsonMapper);
 
         assertThatCode(validator::validate).doesNotThrowAnyException();
     }
@@ -71,7 +71,7 @@ class FlowInstanceValidatorTests {
         Map<String, Object> instance = Map.of("environment", Map.of("value", "dev"));
 
         FlowInstanceValidator validator =
-                new FlowInstanceValidator(new FlowProperties(dimensions(), instance), objectMapper);
+                new FlowInstanceValidator(new FlowProperties(dimensions(), instance), jsonMapper);
 
         assertThatThrownBy(validator::validate)
                 .isInstanceOf(FlowInstanceValidationException.class)
@@ -81,7 +81,7 @@ class FlowInstanceValidatorTests {
     @Test
     void failsWhenInstanceIsEmpty() {
         FlowInstanceValidator validator =
-                new FlowInstanceValidator(new FlowProperties(dimensions(), Map.of()), objectMapper);
+                new FlowInstanceValidator(new FlowProperties(dimensions(), Map.of()), jsonMapper);
 
         assertThatThrownBy(validator::validate)
                 .isInstanceOf(FlowInstanceValidationException.class)
