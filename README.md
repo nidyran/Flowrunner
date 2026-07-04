@@ -8,3 +8,24 @@
 [![GitHub stars](https://img.shields.io/github/stars/nidyran/Flowrunner)](https://github.com/nidyran/Flowrunner/stargazers)
 
 Flowrunner lets developers and testers define, configure, and run API flows — from a single request to full campaigns, headlessly in CI or interactively during dev. Business-agnostic and target-app-agnostic, built with Java, Spring Boot, and REST Assured.
+
+## Concepts
+
+### Flow dimensions
+
+A flow cannot run without at least one **dimension** configured. A dimension describes an axis a flow can be run against — for example the environment to target (`dev`, `staging`, `prod`) or the locale to use (`en`, `fr`). Each dimension has:
+
+- `key` — the identifier used to reference the dimension
+- `name` — a human-readable label
+
+Dimensions are declared under `flowrunner.flow.dimensions` in configuration:
+
+```yaml
+flowrunner:
+  flow:
+    dimensions:
+      - key: environment
+        name: Environment
+      - key: locale
+        name: Locale
+```
