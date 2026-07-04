@@ -34,10 +34,18 @@
         <spring-boot.version>4.1.0</spring-boot.version>
         <rewrite-maven-plugin.version>6.41.0</rewrite-maven-plugin.version>
         <rewrite-static-analysis.version>2.5.0</rewrite-static-analysis.version>
+        <rest-assured.version>6.0.0</rest-assured.version>
     </properties>
 
     <dependencyManagement>
         <dependencies>
+            <dependency>
+                <groupId>io.rest-assured</groupId>
+                <artifactId>rest-assured-bom</artifactId>
+                <version>${rest-assured.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
             <dependency>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-dependencies</artifactId>
@@ -52,6 +60,11 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.rest-assured</groupId>
+            <artifactId>rest-assured</artifactId>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
