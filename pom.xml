@@ -33,7 +33,7 @@
         <maven-compiler-plugin.version>3.15.0</maven-compiler-plugin.version>
         <spring-boot.version>4.1.0</spring-boot.version>
         <rewrite-maven-plugin.version>6.43.0</rewrite-maven-plugin.version>
-        <rewrite-static-analysis.version>2.5.0</rewrite-static-analysis.version>
+        <rewrite-static-analysis.version>2.38.0</rewrite-static-analysis.version>
         <rest-assured.version>6.0.0</rest-assured.version>
     </properties>
 
