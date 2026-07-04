@@ -19,12 +19,10 @@ A **dimension** describes an axis a flow can be run against. Dimensions are opti
 - `name` — a human-readable label
 - `defaultValue` — optional value used when none is supplied at run time
 - `required` — whether a value for this dimension must be supplied to run the flow (defaults to `false`)
+- `relatedTo` — optional key of the parent dimension this one is scoped under
+- `children` — optional list of nested sub-dimensions
 
-Example dimensions:
-
-- **Application** — which app the flow targets, e.g. `Customer`, `Backoffice`, `Customer Service App`
-- **Environment** — which environment to run against, e.g. `Local stack`, `Dev`, `UAT`
-- **Channel** — which channel the flow simulates, e.g. `Web`, `Mob`, `API`
+Dimensions can nest: a dimension's `children` are themselves dimensions, so hierarchies like environment → application → channel can be expressed as a single tree instead of a flat list.
 
 Dimensions are declared under `flowrunner.flow.dimensions` in configuration:
 
@@ -32,15 +30,19 @@ Dimensions are declared under `flowrunner.flow.dimensions` in configuration:
 flowrunner:
   flow:
     dimensions:
-      - key: application
-        name: Application
-        required: true
       - key: environment
         name: Environment
-        defaultValue: Dev
+        defaultValue: local
         required: true
-      - key: channel
-        name: Channel
-        defaultValue: Web
-        required: false
+        children:
+          - key: application
+            name: Application
+            required: true
+            relatedTo: environment
+            children:
+              - key: channel
+                name: Channel
+                defaultValue: Web
+                required: false
+                relatedTo: application
 ```
