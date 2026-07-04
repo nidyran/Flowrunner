@@ -22,7 +22,13 @@
  */
 package dev.flowrunner.config;
 
+import java.util.List;
 import org.springframework.boot.context.properties.bind.DefaultValue;
 
-public record FlowDimension(String key, String name, String defaultValue, @DefaultValue("false") boolean required) {
+public record FlowDimension(
+        String key,
+        String name,
+        String defaultValue,
+        @DefaultValue("false") boolean required,
+        List<String> allowedValues) {
 }
