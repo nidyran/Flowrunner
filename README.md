@@ -13,7 +13,7 @@ Flowrunner lets developers and testers define, configure, and run API flows — 
 
 ### Flow dimensions
 
-A flow cannot run without at least one **dimension** configured. A dimension describes an axis a flow can be run against. Each dimension has:
+A **dimension** describes an axis a flow can be run against. Dimensions are optional and entirely up to you — define whatever axes make sense for your use case, or none at all. Each dimension has:
 
 - `key` — the identifier used to reference the dimension
 - `name` — a human-readable label
