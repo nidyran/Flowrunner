@@ -1,6 +1,0 @@
-flowrunner:
-  flow:
-    dimensions:
-      - key: environment
-        name: Environment
-        required: true
