@@ -4,7 +4,7 @@ displayName: Apply Flowrunner MIT license header
 recipeList:
   - org.openrewrite.java.AddLicenseHeader:
       licenseText: |
-        Copyright (c) 2026 Nidhal Ben Yarou
+        Copyright (c) ${CURRENT_YEAR} Nidhal Ben Yarou
 
         Permission is hereby granted, free of charge, to any person obtaining a copy
         of this software and associated documentation files (the "Software"), to deal
