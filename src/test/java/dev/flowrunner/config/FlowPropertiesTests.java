@@ -28,6 +28,8 @@ import lombok.RequiredArgsConstructor;
 import org.assertj.core.groups.Tuple;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.TestConstructor;
 import org.springframework.test.context.TestConstructor.AutowireMode;
 
@@ -38,8 +40,25 @@ class FlowPropertiesTests {
 
     private final FlowProperties flowProperties;
 
+    @DynamicPropertySource
+    static void dimensions(DynamicPropertyRegistry registry) {
+        registry.add("flowrunner.flow.dimensions[0].key", () -> "application");
+        registry.add("flowrunner.flow.dimensions[0].name", () -> "Application");
+        registry.add("flowrunner.flow.dimensions[0].required", () -> true);
+
+        registry.add("flowrunner.flow.dimensions[1].key", () -> "environment");
+        registry.add("flowrunner.flow.dimensions[1].name", () -> "Environment");
+        registry.add("flowrunner.flow.dimensions[1].defaultValue", () -> "Dev");
+        registry.add("flowrunner.flow.dimensions[1].required", () -> true);
+
+        registry.add("flowrunner.flow.dimensions[2].key", () -> "channel");
+        registry.add("flowrunner.flow.dimensions[2].name", () -> "Channel");
+        registry.add("flowrunner.flow.dimensions[2].defaultValue", () -> "Web");
+        registry.add("flowrunner.flow.dimensions[2].required", () -> false);
+    }
+
     @Test
-    void bindsDimensionsFromConfiguration() {
+    void injectsDimensionsConfiguredAtStartup() {
         assertThat(flowProperties.dimensions())
                 .extracting(
                         FlowDimension::key,
