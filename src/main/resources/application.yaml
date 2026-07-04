@@ -1,3 +1,11 @@
 spring:
   application:
     name: flowrunner
+
+flowrunner:
+  flow:
+    dimensions:
+      - key: environment
+        name: Environment
+      - key: locale
+        name: Locale

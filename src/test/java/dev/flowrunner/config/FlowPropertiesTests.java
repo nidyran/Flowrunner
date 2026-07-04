@@ -20,17 +20,27 @@
  * SOFTWARE.
  * 
  */
-package dev.flowrunner;
+package dev.flowrunner.config;
 
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
+import static org.assertj.core.api.Assertions.assertThat;
 
-@SpringBootApplication
-@ConfigurationPropertiesScan
-public class FlowrunnerApplication {
+import org.assertj.core.groups.Tuple;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
 
-    public static void main(String[] args) {
-        SpringApplication.run(FlowrunnerApplication.class, args);
+@SpringBootTest
+class FlowPropertiesTests {
+
+    @Autowired
+    private FlowProperties flowProperties;
+
+    @Test
+    void bindsDimensionsFromConfiguration() {
+        assertThat(flowProperties.dimensions())
+                .extracting(FlowDimension::key, FlowDimension::name)
+                .containsExactly(
+                        Tuple.tuple("environment", "Environment"),
+                        Tuple.tuple("locale", "Locale"));
     }
 }

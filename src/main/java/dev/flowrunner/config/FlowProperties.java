@@ -20,17 +20,12 @@
  * SOFTWARE.
  * 
  */
-package dev.flowrunner;
+package dev.flowrunner.config;
 
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 
-@SpringBootApplication
-@ConfigurationPropertiesScan
-public class FlowrunnerApplication {
+import java.util.List;
 
-    public static void main(String[] args) {
-        SpringApplication.run(FlowrunnerApplication.class, args);
-    }
+@ConfigurationProperties(prefix = "flowrunner.flow")
+public record FlowProperties(List<FlowDimension> dimensions) {
 }
