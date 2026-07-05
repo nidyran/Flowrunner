@@ -19,20 +19,22 @@ flowrunner:
                 defaultValue: Web
                 required: false
     configuration:
-      environment:
-        - dev:
+      - dimension: environment
+        key: dev
+        metadata: #<- A map of key value pairs
+          host: localhost
+          port: 8080
+        children:
+          - dimension: application
+            key: customer
+            name: Customer
             metadata: #<- A map of key value pairs
               host: localhost
               port: 8080
-            application:
-              - customer:
-                  name: Customer
-                  metadata: #<- A map of key value pairs
-                    host: localhost
-                    port: 8080
-                  channel:
-                    - WEB:
-                        name: Web
-                        metadata: #<- A map of key value pairs
-                          host: localhost
-                          port: 8080
+            children:
+              - dimension: channel
+                key: WEB
+                name: Web
+                metadata: #<- A map of key value pairs
+                  host: localhost
+                  port: 8080

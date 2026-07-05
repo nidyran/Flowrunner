@@ -67,19 +67,25 @@ class FlowPropertiesTests {
     @Test
     void bindsConfigurationToDimensionInstances() {
         assertThat(flowProperties.configuration())
-                .extracting(FlowDimensionInstance::key, FlowDimensionInstance::value)
+                .extracting(FlowDimensionInstance::getDimension, FlowDimensionInstance::getKey)
                 .containsExactly(Tuple.tuple("environment", "dev"));
 
         FlowDimensionInstance dev = flowProperties.configuration().get(0);
-        assertThat(dev.metadata()).containsEntry("host", "localhost").containsEntry("port", 8080);
+        assertThat(dev.getMetadata()).containsEntry("host", "localhost").containsEntry("port", 8080);
 
-        assertThat(dev.children())
-                .extracting(FlowDimensionInstance::key, FlowDimensionInstance::value, FlowDimensionInstance::name)
+        assertThat(dev.getChildren())
+                .extracting(
+                        FlowDimensionInstance::getDimension,
+                        FlowDimensionInstance::getKey,
+                        FlowDimensionInstance::getName)
                 .containsExactly(Tuple.tuple("application", "customer", "Customer"));
 
-        FlowDimensionInstance customer = dev.children().get(0);
-        assertThat(customer.children())
-                .extracting(FlowDimensionInstance::key, FlowDimensionInstance::value, FlowDimensionInstance::name)
+        FlowDimensionInstance customer = dev.getChildren().get(0);
+        assertThat(customer.getChildren())
+                .extracting(
+                        FlowDimensionInstance::getDimension,
+                        FlowDimensionInstance::getKey,
+                        FlowDimensionInstance::getName)
                 .containsExactly(Tuple.tuple("channel", "WEB", "Web"));
     }
 }

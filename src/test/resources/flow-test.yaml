@@ -13,14 +13,16 @@ flowrunner:
                 name: Channel
                 required: false
     configuration:
-      environment:
-        - dev:
-            metadata:
-              host: localhost
-              port: 8080
-            application:
-              - customer:
-                  name: Customer
-                  channel:
-                    - WEB:
-                        name: Web
+      - dimension: environment
+        key: dev
+        metadata:
+          host: localhost
+          port: 8080
+        children:
+          - dimension: application
+            key: customer
+            name: Customer
+            children:
+              - dimension: channel
+                key: WEB
+                name: Web

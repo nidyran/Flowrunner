@@ -22,10 +22,10 @@
  */
 package dev.flowrunner.validation;
 
-import dev.flowrunner.properties.FlowDimension;
+import dev.flowrunner.properties.FlowDimensionInstance;
 import java.util.List;
 
 public interface PostLoadConfigurationVisitor {
 
-    void postLoadConfiguration(List<FlowDimension> dimensions);
+    void postLoadConfiguration(List<FlowDimensionInstance> dimensions);
 }

@@ -13,14 +13,17 @@ flowrunner:
                 name: Channel
                 required: false
     configuration:
-      environment:
-        - dev:
-            application:
-              - customer:
-                  name: Customer
-                  channel:
-                    - WEB:
-                        name: Web
-        - prod:
-            metadata:
-              host: prod.flowrunner.dev
+      - dimension: environment
+        key: dev
+        children:
+          - dimension: application
+            key: customer
+            name: Customer
+            children:
+              - dimension: channel
+                key: WEB
+                name: Web
+      - dimension: environment
+        key: prod
+        metadata:
+          host: prod.flowrunner.dev

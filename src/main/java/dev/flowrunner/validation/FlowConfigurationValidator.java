@@ -45,13 +45,13 @@ public class FlowConfigurationValidator implements ApplicationRunner {
 
     @Override
     public void run(@NonNull ApplicationArguments args) {
-        preLoadConfiguration.orderedStream().forEach(hook -> hook.preLoadConfiguration(flowProperties.dimensions()));
+        preLoadConfiguration.orderedStream().forEach(hook -> hook.preLoadConfiguration(flowProperties.configuration()));
 
         validate();
 
         postLoadConfiguration
                 .orderedStream()
-                .forEach(hook -> hook.postLoadConfiguration(flowProperties.dimensions()));
+                .forEach(hook -> hook.postLoadConfiguration(flowProperties.configuration()));
     }
 
     public void validate() {
@@ -71,7 +71,7 @@ public class FlowConfigurationValidator implements ApplicationRunner {
         for (FlowDimension dimension : dimensions) {
             String dimensionPath = path + dimension.key();
             List<FlowDimensionInstance> matching = instances.stream()
-                    .filter(instance -> dimension.key().equals(instance.key()))
+                    .filter(instance -> dimension.key().equals(instance.getDimension()))
                     .toList();
 
             if (dimension.required() && matching.isEmpty()) {
@@ -81,8 +81,8 @@ public class FlowConfigurationValidator implements ApplicationRunner {
             for (FlowDimensionInstance instance : matching) {
                 validate(
                         dimension.children(),
-                        instance.children(),
-                        "%s[%s].".formatted(dimensionPath, instance.value()),
+                        instance.getChildren(),
+                        "%s[%s].".formatted(dimensionPath, instance.getKey()),
                         errors);
             }
         }

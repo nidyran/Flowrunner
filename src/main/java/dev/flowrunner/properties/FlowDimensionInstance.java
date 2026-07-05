@@ -22,9 +22,25 @@
  */
 package dev.flowrunner.properties;
 
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import lombok.Getter;
+import lombok.Setter;
 
-public record FlowDimensionInstance(
-        String key, String value, String name, Map<String, Object> metadata, List<FlowDimensionInstance> children) {
+/**
+ * A configured value of a {@link FlowDimension}, mutable so that pre- and post-load
+ * configuration visitors can adjust the tree. {@code dimension} is the key of the
+ * dimension this instance belongs to, {@code key} is the key of the instance itself.
+ */
+@Getter
+@Setter
+public class FlowDimensionInstance {
+
+    private String dimension;
+    private String key;
+    private String name;
+    private Map<String, Object> metadata = new LinkedHashMap<>();
+    private List<FlowDimensionInstance> children = new ArrayList<>();
 }

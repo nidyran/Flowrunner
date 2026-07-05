@@ -13,28 +13,35 @@ flowrunner:
                 name: Channel
                 required: false
     configuration:
-      environment:
-        - dev:
-            metadata:
-              host: localhost
-              port: 8080
-            application:
-              - customer:
-                  name: Customer
-                  channel:
-                    - WEB:
-                        name: Web
-                    - MOBILE:
-                        name: Mobile
-              - retailer:
-                  name: Retailer
-        - prod:
-            metadata:
-              host: prod.flowrunner.dev
-              port: 443
-            application:
-              - customer:
-                  name: Customer
-                  channel:
-                    - WEB:
-                        name: Web
+      - dimension: environment
+        key: dev
+        metadata:
+          host: localhost
+          port: 8080
+        children:
+          - dimension: application
+            key: customer
+            name: Customer
+            children:
+              - dimension: channel
+                key: WEB
+                name: Web
+              - dimension: channel
+                key: MOBILE
+                name: Mobile
+          - dimension: application
+            key: retailer
+            name: Retailer
+      - dimension: environment
+        key: prod
+        metadata:
+          host: prod.flowrunner.dev
+          port: 443
+        children:
+          - dimension: application
+            key: customer
+            name: Customer
+            children:
+              - dimension: channel
+                key: WEB
+                name: Web
