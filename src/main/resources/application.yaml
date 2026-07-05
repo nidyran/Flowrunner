@@ -32,7 +32,7 @@ flowrunner:
                     port: 8080
                   channel:
                     - WEB:
-                      name: Web
-                      properties: #<- A map key value pairs
-                        host: localhost
-                        port: 8080
+                        name: Web
+                        properties: #<- A map key value pairs
+                          host: localhost
+                          port: 8080

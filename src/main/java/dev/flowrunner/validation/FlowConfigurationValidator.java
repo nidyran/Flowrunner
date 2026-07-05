@@ -101,8 +101,7 @@ public class FlowConfigurationValidator implements ApplicationRunner {
                 }
 
                 String entryPath = "%s[%s]".formatted(dimensionPath, value.orElse(String.valueOf(index)));
-                JsonNode body = entry.path(value.orElse(Strings.EMPTY));
-                validate(dimension.children(), body.isObject() ? body : entry, entryPath + ".", errors);
+                validate(dimension.children(), entry.path(value.orElse(Strings.EMPTY)), entryPath + ".", errors);
                 index++;
             }
         }
