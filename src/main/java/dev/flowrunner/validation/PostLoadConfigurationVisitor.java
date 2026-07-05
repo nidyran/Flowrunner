@@ -25,8 +25,7 @@ package dev.flowrunner.validation;
 import dev.flowrunner.properties.FlowDimension;
 import java.util.List;
 
-//TODO: claude: rename this PostLoadConfigurationVisitor
-public interface PreLoadConfiguration {
+public interface PostLoadConfigurationVisitor {
 
-    void preLoadConfiguration(List<FlowDimension> dimensions);
+    void postLoadConfiguration(List<FlowDimension> dimensions);
 }

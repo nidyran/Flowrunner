@@ -57,12 +57,12 @@ class FlowConfigurationValidatorHooksTests {
         }
 
         @Bean
-        PreLoadConfiguration preLoadConfiguration(Invocations invocations) {
+        PreLoadConfigurationVisitor preLoadConfiguration(Invocations invocations) {
             return dimensions -> invocations.add("pre");
         }
 
         @Bean
-        PostLoadConfiguration postLoadConfiguration(Invocations invocations) {
+        PostLoadConfigurationVisitor postLoadConfiguration(Invocations invocations) {
             return dimensions -> invocations.add("post");
         }
     }

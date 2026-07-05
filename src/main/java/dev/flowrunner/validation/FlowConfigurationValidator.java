@@ -40,8 +40,8 @@ import tools.jackson.databind.json.JsonMapper;
 @RequiredArgsConstructor
 public class FlowConfigurationValidator implements ApplicationRunner {
 
-    private final ObjectProvider<PostLoadConfiguration> postLoadConfiguration;
-    private final ObjectProvider<PreLoadConfiguration> preLoadConfiguration;
+    private final ObjectProvider<PostLoadConfigurationVisitor> postLoadConfiguration;
+    private final ObjectProvider<PreLoadConfigurationVisitor> preLoadConfiguration;
     private final FlowProperties flowProperties;
     private final JsonMapper jsonMapper;
 
