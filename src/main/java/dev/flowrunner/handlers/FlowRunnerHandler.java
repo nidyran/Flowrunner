@@ -25,6 +25,7 @@ package dev.flowrunner.handlers;
 import java.util.Collections;
 import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 
 public interface FlowRunnerHandler {
 
@@ -39,7 +40,7 @@ public interface FlowRunnerHandler {
      * Implementations can override for custom naming.
      */
     default String friendlyName() {
-        String className = StringUtils.removeEnd(this.getClass().getSimpleName(), "Handler");
+        String className = Strings.CS.removeEnd(this.getClass().getSimpleName(), "Handler");
         return String.join(" ", StringUtils.splitByCharacterTypeCamelCase(className));
     }
 
