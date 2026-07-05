@@ -183,21 +183,28 @@
                     <argLine>@{argLine} -Xshare:off -javaagent:${org.mockito:mockito-core:jar}</argLine>
                 </configuration>
             </plugin>
+            <!--
+                No <executions> here on purpose: this plugin isn't bound to the default
+                build lifecycle. .github/workflows/publish-javadoc.yml invokes it directly
+                via `mvn javadoc:javadoc`, which still picks up this configuration.
+                Binding it to the package phase used to force a nested lifecycle fork on
+                every local/CI build (the javadoc goal has a hardcoded executePhase of
+                generate-sources), which doubled the resource/compile phases and produced
+                spurious "Overwriting artifact's file" and MeterRegistry warnings.
+            -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>generate-javadoc</id>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>javadoc</goal>
-                        </goals>
-                    </execution>
-                </executions>
                 <configuration>
                     <source>${java.version}</source>
                     <doclint>none</doclint>
+                    <!--
+                        javadoc:javadoc run directly from the command line (as CI does)
+                        defaults outputDirectory to target/reports instead of the usual
+                        target/site, so pin it explicitly to keep it matching what
+                        publish-javadoc.yml uploads (target/site/apidocs).
+                    -->
+                    <outputDirectory>${project.build.directory}/site</outputDirectory>
                 </configuration>
             </plugin>
         </plugins>
