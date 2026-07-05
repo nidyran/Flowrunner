@@ -5,7 +5,7 @@ Standing rules for AI-assisted work in this repository.
 ## Workflow
 
 - Pull `main` before starting any work.
-- Every requested task is delivered as a GitHub pull request: branch off up-to-date `main` (short kebab-case branch name), commit there, push, and open the PR with `gh pr create`. Never commit directly to `main`.
+- Commit and push every completed change to `origin/main` without waiting to be asked; pull/rebase first if the remote has diverged.
 - Verify with `mvn -B clean test` before committing. A task isn't done until the full suite passes.
 - Commit messages: imperative summary line, body explaining the why when it isn't obvious.
 
