@@ -8,6 +8,8 @@
 
 Flowrunner lets developers and testers define, configure, and run API flows — from a single request to full campaigns, headlessly in CI or interactively during dev. Business-agnostic and target-app-agnostic, built with Java, Spring Boot, and REST Assured.
 
+> ⚠️ **Project status**: Flowrunner is actively under development and is not ready for usage yet.
+
 ## Why this project exists
 
 Flowrunner is a ground-up rebuild of a tool I originally wrote for a specific project — one whose dimensions were hardcoded to that project's world. This version generalizes the idea: dimensions are entirely yours to define.
@@ -15,6 +17,24 @@ Flowrunner is a ground-up rebuild of a tool I originally wrote for a specific pr
 I built the original as a way to speed up my own development process. Testing APIs across multiple applications — each with several layers of security, complicated authentication flows, and second factors — had become a nightmare. Before writing my own tool, I invested a lot of time in existing solutions like Postman, Karate, and many others; none of them fit the way I work as a developer. So I built one that does.
 
 What started as an idea is now a fully working solution with many features. I'm sharing it with the community as a small return for all the tools I've been using for free since I started working in this industry.
+
+## What a flow can do
+
+Flows are plain Java, so a flow isn't limited to HTTP calls — it can run SQL statements, connect to databases, call AI models, perform Keycloak operations, and almost everything else you can do in Java.
+
+The flow runner's logger will support rich, structured output:
+
+- HTTP traces
+- Raw text with multiple levels (INFO, WARN, ERROR)
+- Insights from AI, rendered as Markdown
+- JSON
+- SQL
+
+## Roadmap
+
+- [ ] Complete the migration of the project with the main features
+- [ ] Headless mode to run the existing flows and generate a report from CI
+- [ ] Allow defining flows in a declarative way
 
 ## Built with
 
