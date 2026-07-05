@@ -14,8 +14,13 @@ flowrunner:
                 required: false
     configuration:
       environment:
-        - value: dev
-          application:
-            - value: Customer
-              channel:
-                - value: Web
+        - dev:
+            properties:
+              host: localhost
+              port: 8080
+            application:
+              - customer:
+                  name: Customer
+                  channel:
+                    - WEB:
+                        name: Web

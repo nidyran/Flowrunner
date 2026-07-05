@@ -14,14 +14,13 @@ flowrunner:
                 required: false
     configuration:
       environment:
-        - value: dev
-          application:
-            - value: Customer
-              channel:
-                - value: Web
-            - value:
-        - value: prod
-          application:
-            - value: Customer
-              channel:
-                - value: Web
+        - dev:
+            application:
+              - customer:
+                  name: Customer
+                  channel:
+                    - WEB:
+                        name: Web
+        - prod:
+            properties:
+              host: prod.flowrunner.dev

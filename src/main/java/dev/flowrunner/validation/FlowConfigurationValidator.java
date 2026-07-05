@@ -26,6 +26,7 @@ import dev.flowrunner.properties.FlowDimension;
 import dev.flowrunner.properties.FlowProperties;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.apache.logging.log4j.util.Strings;
 import org.jspecify.annotations.NonNull;
@@ -65,6 +66,19 @@ public class FlowConfigurationValidator implements ApplicationRunner {
         }
     }
 
+    /*
+     * Each dimension in the configuration is a list of entries keyed by the dimension
+     * value itself, with an optional body holding a name, arbitrary properties and the
+     * child dimension lists:
+     *
+     * environment:
+     *   - dev:
+     *       properties:
+     *         host: localhost
+     *       application:
+     *         - customer:
+     *             name: Customer
+     */
     private void validate(List<FlowDimension> dimensions, JsonNode configuration, String path, List<String> errors) {
         if (dimensions == null) {
             return;
@@ -72,25 +86,24 @@ public class FlowConfigurationValidator implements ApplicationRunner {
 
         for (FlowDimension dimension : dimensions) {
             String dimensionPath = path + dimension.key();
-            JsonNode nodes = configuration.path(dimension.key());
+            JsonNode entries = configuration.path(dimension.key());
 
-            if (dimension.required() && nodes.isEmpty()) {
+            if (dimension.required() && entries.isEmpty()) {
                 errors.add("Missing required dimension '%s'".formatted(dimensionPath));
             }
 
             int index = 0;
-            for (JsonNode node : nodes) {
-                String indexedPath = "%s[%d]".formatted(dimensionPath, index++);
-                JsonNode valueNode = node.path("value");
-                boolean hasValue = !valueNode.isMissingNode()
-                        && !valueNode.isNull()
-                        && !(valueNode.isTextual() && valueNode.asString().isBlank());
+            for (JsonNode entry : entries) {
+                Optional<String> value = entry.propertyNames().stream().findFirst();
 
-                if (!hasValue) {
-                    errors.add("Missing value for dimension '%s'".formatted(indexedPath));
+                if (value.isEmpty()) {
+                    errors.add("Missing value for dimension '%s[%d]'".formatted(dimensionPath, index));
                 }
 
-                validate(dimension.children(), node, indexedPath + ".", errors);
+                String entryPath = "%s[%s]".formatted(dimensionPath, value.orElse(String.valueOf(index)));
+                JsonNode body = entry.path(value.orElse(Strings.EMPTY));
+                validate(dimension.children(), body.isObject() ? body : entry, entryPath + ".", errors);
+                index++;
             }
         }
     }

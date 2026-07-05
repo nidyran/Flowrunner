@@ -49,16 +49,14 @@ class FlowConfigurationValidatorInvalidMultiValueTests {
             .withUserConfiguration(FlowrunnerApplication.class);
 
     @Test
-    void reportsMissingValueOnlyForTheOffendingBranch() {
+    void reportsMissingRequiredDimensionOnlyForTheOffendingBranch() {
         contextRunner.run(context -> {
             FlowConfigurationValidator flowConfigurationValidator = context.getBean(FlowConfigurationValidator.class);
 
             assertThatThrownBy(flowConfigurationValidator::validate)
                     .isInstanceOf(FlowConfigurationValidationException.class)
-                    .hasMessageContaining("environment[0].application[1]")
-                    .satisfies(exception -> assertThat(exception.getMessage())
-                            .doesNotContain("environment[0].application[0]")
-                            .doesNotContain("environment[1]"));
+                    .hasMessageContaining("Missing required dimension 'environment[prod].application'")
+                    .satisfies(exception -> assertThat(exception.getMessage()).doesNotContain("environment[dev]"));
         });
     }
 }

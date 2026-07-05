@@ -14,15 +14,27 @@ flowrunner:
                 required: false
     configuration:
       environment:
-        - value: dev
-          application:
-            - value: Customer
-              channel:
-                - value: Web
-                - value: Mobile
-            - value: Retailer
-        - value: prod
-          application:
-            - value: Customer
-              channel:
-                - value: Web
+        - dev:
+            properties:
+              host: localhost
+              port: 8080
+            application:
+              - customer:
+                  name: Customer
+                  channel:
+                    - WEB:
+                        name: Web
+                    - MOBILE:
+                        name: Mobile
+              - retailer:
+                  name: Retailer
+        - prod:
+            properties:
+              host: prod.flowrunner.dev
+              port: 443
+            application:
+              - customer:
+                  name: Customer
+                  channel:
+                    - WEB:
+                        name: Web
