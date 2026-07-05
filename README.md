@@ -150,6 +150,4 @@ Both receive the list of root `FlowDimensionInstance` objects; instances are mut
 
 ## Known issues
 
-| Issue | Impact | Workaround | Reference |
-|---|---|---|---|
-| `@PropertySource` / `@TestPropertySource` don't support YAML files | Test classes can't load their YAML fixtures through `@TestPropertySource(locations = ...)`; Spring Boot declined shipping a built-in `YamlPropertySourceFactory` because it couldn't honor `spring.config.activate.on-profile`, `spring.config.import` or multi-document YAML. | Tests select their fixture with `@SpringBootTest(properties = "spring.config.location=classpath:/<fixture>.yaml")`, which routes through Spring Boot's full YAML processing. | [spring-boot#33434](https://github.com/spring-projects/spring-boot/issues/33434), [spring-boot#42603 (declined)](https://github.com/spring-projects/spring-boot/pull/42603) |
+- **`@PropertySource` / `@TestPropertySource` don't support YAML files** — test classes can't load their YAML fixtures through `@TestPropertySource(locations = ...)`; Spring Boot declined shipping a built-in `YamlPropertySourceFactory` because it couldn't honor `spring.config.activate.on-profile`, `spring.config.import` or multi-document YAML. Workaround: tests select their fixture with `@SpringBootTest(properties = "spring.config.location=classpath:/<fixture>.yaml")`, which routes through Spring Boot's full YAML processing. See [spring-boot#33434](https://github.com/spring-projects/spring-boot/issues/33434) and [spring-boot#42603 (declined)](https://github.com/spring-projects/spring-boot/pull/42603).
