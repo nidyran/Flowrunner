@@ -58,6 +58,39 @@ flowrunner:
 
 At startup, `flowrunner.flow.configuration` is validated against the dimension tree: for every dimension marked `required`, a value must be present at the matching path in the configuration. If any required dimension is missing a value, startup fails with a `FlowConfigurationValidationException` listing every missing dimension.
 
+#### Example: valid configuration
+
+Given the dimension tree above (environment and application required, channel optional), this configuration passes validation:
+
+```yaml
+flowrunner:
+  flow:
+    configuration:
+      environment:
+        value: dev
+        application:
+          value: Customer
+          channel:
+            value: Web
+```
+
+Both required dimensions — `environment` and `environment.application` — have values. The optional `channel` dimension is also provided; if omitted, the default `Web` would be used at runtime.
+
+#### Example: invalid configuration
+
+This configuration would fail validation:
+
+```yaml
+flowrunner:
+  flow:
+    configuration:
+      environment:
+        value: dev
+        # application.value is missing but required
+```
+
+Startup would throw `FlowConfigurationValidationException` with the error: `Missing required dimension 'environment.application'`.
+
 ### Pre/post load configuration visitors
 
 Two extension points let you hook into this validation lifecycle by registering beans that implement:
