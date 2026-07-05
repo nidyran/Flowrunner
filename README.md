@@ -1,6 +1,7 @@
 # Flowrunner
 
 [![CI](https://img.shields.io/github/actions/workflow/status/nidyran/Flowrunner/ci.yml?branch=main&label=CI)](https://github.com/nidyran/Flowrunner/actions/workflows/ci.yml)
+[![Coverage](https://codecov.io/gh/nidyran/Flowrunner/branch/main/graph/badge.svg)](https://codecov.io/gh/nidyran/Flowrunner)
 [![License](https://img.shields.io/github/license/nidyran/Flowrunner)](https://github.com/nidyran/Flowrunner/blob/main/LICENSE)
 [![GitHub stars](https://img.shields.io/github/stars/nidyran/Flowrunner)](https://github.com/nidyran/Flowrunner/stargazers)
 
