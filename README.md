@@ -55,42 +55,68 @@ flowrunner:
                 required: false
 ```
 
+### Flow dimension instances
+
+The actual configured values live under `flowrunner.flow.configuration` as a tree of **dimension instances**, bound directly to `FlowDimensionInstance` objects. Each instance has:
+
+- `dimension` — the key of the dimension this instance belongs to (matches a `FlowDimension.key`)
+- `key` — the key of the instance itself (e.g. `dev`, `customer`, `WEB`)
+- `name` — an optional human-readable label
+- `metadata` — an optional map of arbitrary attributes (e.g. `host`, `port`)
+- `children` — instances of child dimensions under this instance
+
+A dimension can have any number of instances at any level — several environments, several applications per environment, several channels per application:
+
+```yaml
+flowrunner:
+  flow:
+    configuration:
+      - dimension: environment
+        key: dev
+        metadata:
+          host: localhost
+          port: 8080
+        children:
+          - dimension: application
+            key: customer
+            name: Customer
+            children:
+              - dimension: channel
+                key: WEB
+                name: Web
+      - dimension: environment
+        key: prod
+        metadata:
+          host: prod.flowrunner.dev
+          port: 443
+        children:
+          - dimension: application
+            key: customer
+            name: Customer
+```
+
 ### Configuration validation
 
-At startup, `flowrunner.flow.configuration` is validated against the dimension tree: for every dimension marked `required`, a value must be present at the matching path in the configuration. If any required dimension is missing a value, startup fails with a `FlowConfigurationValidationException` listing every missing dimension.
+At startup, the configuration is validated against the dimension tree: every branch must contain at least one instance of each dimension marked `required`. If any branch is missing a required dimension, startup fails with a `FlowConfigurationValidationException` listing every offending path, qualified by instance key — e.g. a `prod` environment without any `application` instances is reported as `Missing required dimension 'environment[prod].application'`.
 
-#### Example: valid configuration
-
-Given the dimension tree above (environment and application required, channel optional), this configuration passes validation:
+Given the dimension tree above (environment and application required, channel optional), this configuration fails validation:
 
 ```yaml
 flowrunner:
   flow:
     configuration:
-      environment:
-        value: dev
-        application:
-          value: Customer
-          channel:
-            value: Web
+      - dimension: environment
+        key: dev
+        children:
+          - dimension: application
+            key: customer
+            name: Customer
+      - dimension: environment
+        key: prod
+        # no application instances, but application is required
 ```
 
-Both required dimensions — `environment` and `environment.application` — have values. The optional `channel` dimension is also provided; if omitted, the default `Web` would be used at runtime.
-
-#### Example: invalid configuration
-
-This configuration would fail validation:
-
-```yaml
-flowrunner:
-  flow:
-    configuration:
-      environment:
-        value: dev
-        # application.value is missing but required
-```
-
-Startup would throw `FlowConfigurationValidationException` with the error: `Missing required dimension 'environment.application'`.
+The `dev` branch is fine; only the `prod` branch is reported.
 
 ### Pre/post load configuration visitors
 
@@ -99,4 +125,4 @@ Two extension points let you hook into this validation lifecycle by registering 
 - `PreLoadConfigurationVisitor` — runs before validation. Use it to fill gaps in the configuration (e.g. resolve missing values from another source) so that validation doesn't fail on dimensions you can supply another way.
 - `PostLoadConfigurationVisitor` — runs after validation succeeds. Use it to customize or extend the configuration further once it's known to be valid.
 
-Any number of beans of each type can be registered; they run in bean order.
+Both receive the list of root `FlowDimensionInstance` objects; instances are mutable, so visitors can adjust the tree in place. Any number of beans of each type can be registered; they run in bean order.
