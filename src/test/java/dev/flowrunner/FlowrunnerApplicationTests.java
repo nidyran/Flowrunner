@@ -22,17 +22,25 @@
  */
 package dev.flowrunner;
 
+import static org.assertj.core.api.Assertions.assertThatCode;
+
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 /**
  * Covers application bootstrap: the Spring context starts with the default
- * (empty) configuration, including the startup validation run.
+ * (empty) configuration, including the startup validation run, both through
+ * the test context and through the {@code main} entry point.
  */
 @SpringBootTest
 class FlowrunnerApplicationTests {
 
     @Test
     void contextLoads() {
+    }
+
+    @Test
+    void mainStartsTheApplication() {
+        assertThatCode(() -> FlowrunnerApplication.main(new String[]{})).doesNotThrowAnyException();
     }
 }

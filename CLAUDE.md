@@ -45,6 +45,7 @@ Flowrunner is a business-agnostic, declarative flow/process execution engine (Ja
 ## Testing
 
 - Every task ships with a set of tests covering the change — happy path, failure cases and edge cases — aiming for high test coverage.
+- Test coverage must never decrease: every task keeps the JaCoCo coverage at least at its previous level (check `target/site/jacoco` after `mvn -B clean verify`). Current baseline: 100% instruction coverage.
 - Every test class is a `@SpringBootTest` booting the real application context — no plain unit tests with hand-rolled Spring types, no `ApplicationContextRunner`.
 - Constructor injection in tests via `@RequiredArgsConstructor` + `@TestConstructor(autowireMode = AutowireMode.ALL)`.
 - YAML fixtures live in `src/test/resources`, one per test class, named `flow-test-<scenario>.yaml` with invalid variants suffixed `-invalid`; selected per class with `@SpringBootTest(properties = "spring.config.location=classpath:/<fixture>.yaml")`.
