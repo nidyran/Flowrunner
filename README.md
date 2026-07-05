@@ -53,3 +53,16 @@ flowrunner:
                 defaultValue: Web
                 required: false
 ```
+
+### Configuration validation
+
+At startup, `flowrunner.flow.configuration` is validated against the dimension tree: for every dimension marked `required`, a value must be present at the matching path in the configuration. If any required dimension is missing a value, startup fails with a `FlowConfigurationValidationException` listing every missing dimension.
+
+### Pre/post load configuration visitors
+
+Two extension points let you hook into this validation lifecycle by registering beans that implement:
+
+- `PreLoadConfigurationVisitor` — runs before validation. Use it to fill gaps in the configuration (e.g. resolve missing values from another source) so that validation doesn't fail on dimensions you can supply another way.
+- `PostLoadConfigurationVisitor` — runs after validation succeeds. Use it to customize or extend the configuration further once it's known to be valid.
+
+Any number of beans of each type can be registered; they run in bean order.
