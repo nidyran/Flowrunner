@@ -101,14 +101,6 @@ At startup, the configuration is validated against the dimension tree: every bra
 
 Startup validation can be turned off with `flowrunner.flow.validate-on-startup: false`; `FlowConfigurationValidator.validate()` can then be invoked on demand.
 
-### Properties
-
-| Property | Type | Default | Description |
-|---|---|---|---|
-| `flowrunner.flow.dimensions` | list of `FlowDimension` | — | The dimension tree describing the axes flows can be run against. |
-| `flowrunner.flow.configuration` | list of `FlowDimensionInstance` | — | The configured dimension instances, validated against the dimension tree at startup. |
-| `flowrunner.flow.validate-on-startup` | boolean | `true` | Whether the configuration is validated (and the pre/post load visitors run) at application startup. |
-
 Given the dimension tree above (environment and application required, channel optional), this configuration fails validation:
 
 ```yaml
@@ -136,3 +128,21 @@ Two extension points let you hook into this validation lifecycle by registering 
 - `PostLoadConfigurationVisitor` — runs after validation succeeds. Use it to customize or extend the configuration further once it's known to be valid.
 
 Both receive the list of root `FlowDimensionInstance` objects; instances are mutable, so visitors can adjust the tree in place. Any number of beans of each type can be registered; they run in bean order.
+
+## Properties
+
+| Property | Type | Default | Description |
+|---|---|---|---|
+| `flowrunner.flow.dimensions` | list of `FlowDimension` | — | The dimension tree describing the axes flows can be run against. |
+| `flowrunner.flow.dimensions[].key` | string | — | Identifier used to reference the dimension. |
+| `flowrunner.flow.dimensions[].name` | string | — | Human-readable label. |
+| `flowrunner.flow.dimensions[].defaultValue` | string | — | Value used when none is supplied at run time. |
+| `flowrunner.flow.dimensions[].required` | boolean | `false` | Whether an instance of this dimension must be configured in every branch. |
+| `flowrunner.flow.dimensions[].children` | list of `FlowDimension` | — | Nested sub-dimensions. |
+| `flowrunner.flow.configuration` | list of `FlowDimensionInstance` | — | The configured dimension instances, validated against the dimension tree at startup. |
+| `flowrunner.flow.configuration[].dimension` | string | — | Key of the dimension this instance belongs to. |
+| `flowrunner.flow.configuration[].key` | string | — | Key of the instance itself (e.g. `dev`, `customer`). |
+| `flowrunner.flow.configuration[].name` | string | — | Human-readable label. |
+| `flowrunner.flow.configuration[].metadata` | map | empty | Arbitrary attributes of the instance (e.g. `host`, `port`). |
+| `flowrunner.flow.configuration[].children` | list of `FlowDimensionInstance` | empty | Instances of child dimensions under this instance. |
+| `flowrunner.flow.validate-on-startup` | boolean | `true` | Whether the configuration is validated (and the pre/post load visitors run) at application startup. |
