@@ -22,5 +22,5 @@ flowrunner:
                     - WEB:
                         name: Web
         - prod:
-            properties:
+            metadata:
               host: prod.flowrunner.dev

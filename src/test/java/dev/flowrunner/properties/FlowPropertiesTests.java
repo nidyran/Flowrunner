@@ -63,4 +63,23 @@ class FlowPropertiesTests {
                         FlowDimension::required)
                 .containsExactly(Tuple.tuple("channel", "Channel", "Web", false));
     }
+
+    @Test
+    void bindsConfigurationToDimensionInstances() {
+        assertThat(flowProperties.configuration())
+                .extracting(FlowDimensionInstance::key, FlowDimensionInstance::value)
+                .containsExactly(Tuple.tuple("environment", "dev"));
+
+        FlowDimensionInstance dev = flowProperties.configuration().get(0);
+        assertThat(dev.metadata()).containsEntry("host", "localhost").containsEntry("port", 8080);
+
+        assertThat(dev.children())
+                .extracting(FlowDimensionInstance::key, FlowDimensionInstance::value, FlowDimensionInstance::name)
+                .containsExactly(Tuple.tuple("application", "customer", "Customer"));
+
+        FlowDimensionInstance customer = dev.children().get(0);
+        assertThat(customer.children())
+                .extracting(FlowDimensionInstance::key, FlowDimensionInstance::value, FlowDimensionInstance::name)
+                .containsExactly(Tuple.tuple("channel", "WEB", "Web"));
+    }
 }

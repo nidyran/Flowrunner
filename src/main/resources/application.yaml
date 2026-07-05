@@ -21,18 +21,18 @@ flowrunner:
     configuration:
       environment:
         - dev:
-            properties: #<- A map key value pairs
+            metadata: #<- A map of key value pairs
               host: localhost
               port: 8080
             application:
               - customer:
                   name: Customer
-                  properties: #<- A map key value pairs
+                  metadata: #<- A map of key value pairs
                     host: localhost
                     port: 8080
                   channel:
                     - WEB:
                         name: Web
-                        properties: #<- A map key value pairs
+                        metadata: #<- A map of key value pairs
                           host: localhost
                           port: 8080

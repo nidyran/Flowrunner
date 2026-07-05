@@ -23,10 +23,10 @@
 package dev.flowrunner.validation;
 
 import dev.flowrunner.properties.FlowDimension;
+import dev.flowrunner.properties.FlowDimensionInstance;
 import dev.flowrunner.properties.FlowProperties;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.apache.logging.log4j.util.Strings;
 import org.jspecify.annotations.NonNull;
@@ -34,8 +34,6 @@ import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.stereotype.Component;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.json.JsonMapper;
 
 @Component
 @RequiredArgsConstructor
@@ -44,7 +42,6 @@ public class FlowConfigurationValidator implements ApplicationRunner {
     private final ObjectProvider<PostLoadConfigurationVisitor> postLoadConfiguration;
     private final ObjectProvider<PreLoadConfigurationVisitor> preLoadConfiguration;
     private final FlowProperties flowProperties;
-    private final JsonMapper jsonMapper;
 
     @Override
     public void run(@NonNull ApplicationArguments args) {
@@ -59,50 +56,34 @@ public class FlowConfigurationValidator implements ApplicationRunner {
 
     public void validate() {
         List<String> errors = new ArrayList<>();
-        JsonNode configuration = jsonMapper.valueToTree(flowProperties.configuration());
-        validate(flowProperties.dimensions(), configuration, Strings.EMPTY, errors);
+        validate(flowProperties.dimensions(), flowProperties.configuration(), Strings.EMPTY, errors);
         if (!errors.isEmpty()) {
             throw new FlowConfigurationValidationException(errors);
         }
     }
 
-    /*
-     * Each dimension in the configuration is a list of entries keyed by the dimension
-     * value itself, with an optional body holding a name, arbitrary properties and the
-     * child dimension lists:
-     *
-     * environment:
-     *   - dev:
-     *       properties:
-     *         host: localhost
-     *       application:
-     *         - customer:
-     *             name: Customer
-     */
-    private void validate(List<FlowDimension> dimensions, JsonNode configuration, String path, List<String> errors) {
+    private void validate(
+            List<FlowDimension> dimensions, List<FlowDimensionInstance> instances, String path, List<String> errors) {
         if (dimensions == null) {
             return;
         }
 
         for (FlowDimension dimension : dimensions) {
             String dimensionPath = path + dimension.key();
-            JsonNode entries = configuration.path(dimension.key());
+            List<FlowDimensionInstance> matching = instances.stream()
+                    .filter(instance -> dimension.key().equals(instance.key()))
+                    .toList();
 
-            if (dimension.required() && entries.isEmpty()) {
+            if (dimension.required() && matching.isEmpty()) {
                 errors.add("Missing required dimension '%s'".formatted(dimensionPath));
             }
 
-            int index = 0;
-            for (JsonNode entry : entries) {
-                Optional<String> value = entry.propertyNames().stream().findFirst();
-
-                if (value.isEmpty()) {
-                    errors.add("Missing value for dimension '%s[%d]'".formatted(dimensionPath, index));
-                }
-
-                String entryPath = "%s[%s]".formatted(dimensionPath, value.orElse(String.valueOf(index)));
-                validate(dimension.children(), entry.path(value.orElse(Strings.EMPTY)), entryPath + ".", errors);
-                index++;
+            for (FlowDimensionInstance instance : matching) {
+                validate(
+                        dimension.children(),
+                        instance.children(),
+                        "%s[%s].".formatted(dimensionPath, instance.value()),
+                        errors);
             }
         }
     }

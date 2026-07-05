@@ -15,7 +15,7 @@ flowrunner:
     configuration:
       environment:
         - dev:
-            properties:
+            metadata:
               host: localhost
               port: 8080
             application:
