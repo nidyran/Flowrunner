@@ -26,7 +26,20 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.Map;
 import org.junit.jupiter.api.Test;
+import org.springframework.boot.test.context.SpringBootTest;
 
+/**
+ * Covers the {@link FlowRunnerHandler} contract and its default methods:
+ * <ul>
+ *   <li>friendly names derived from class names — simple names, multi-word names,
+ *       acronyms (single, consecutive), digits, names without the "Handler" suffix
+ *       and the bare "Handler" edge case</li>
+ *   <li>default and overridden {@code description()} and {@code getSupportedParameters()}</li>
+ *   <li>{@code supportedDimensionsPattern()} and {@code module()} of implementations</li>
+ *   <li>{@code run(...)} accepting empty, single and multiple parameters</li>
+ * </ul>
+ */
+@SpringBootTest
 class FlowRunnerHandlerTests {
 
     private static class TestHandler implements FlowRunnerHandler {
