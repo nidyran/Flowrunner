@@ -22,31 +22,33 @@
  */
 package dev.flowrunner.validation;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-
+import dev.flowrunner.properties.FlowProperties;
 import lombok.RequiredArgsConstructor;
-import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.TestConstructor;
-import org.springframework.test.context.TestConstructor.AutowireMode;
+import org.jspecify.annotations.NonNull;
+import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.boot.ApplicationArguments;
+import org.springframework.boot.ApplicationRunner;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBooleanProperty;
+import org.springframework.stereotype.Component;
 
-@SpringBootTest(
-        properties = {
-                "spring.config.location=classpath:/flow-test-multi-invalid.yaml",
-                "flowrunner.flow.validate-on-startup=false"
-        })
+@Component
 @RequiredArgsConstructor
-@TestConstructor(autowireMode = AutowireMode.ALL)
-class FlowConfigurationValidatorInvalidMultiValueTests {
+@ConditionalOnBooleanProperty(name = "flowrunner.flow.validate-on-startup", matchIfMissing = true)
+public class FlowConfigurationStartupRunner implements ApplicationRunner {
 
+    private final ObjectProvider<PostLoadConfigurationVisitor> postLoadConfiguration;
+    private final ObjectProvider<PreLoadConfigurationVisitor> preLoadConfiguration;
     private final FlowConfigurationValidator flowConfigurationValidator;
+    private final FlowProperties flowProperties;
 
-    @Test
-    void reportsMissingRequiredDimensionOnlyForTheOffendingBranch() {
-        assertThatThrownBy(flowConfigurationValidator::validate)
-                .isInstanceOf(FlowConfigurationValidationException.class)
-                .hasMessageContaining("Missing required dimension 'environment[prod].application'")
-                .satisfies(exception -> assertThat(exception.getMessage()).doesNotContain("environment[dev]"));
+    @Override
+    public void run(@NonNull ApplicationArguments args) {
+        preLoadConfiguration.orderedStream().forEach(hook -> hook.preLoadConfiguration(flowProperties.configuration()));
+
+        flowConfigurationValidator.validate();
+
+        postLoadConfiguration
+                .orderedStream()
+                .forEach(hook -> hook.postLoadConfiguration(flowProperties.configuration()));
     }
 }

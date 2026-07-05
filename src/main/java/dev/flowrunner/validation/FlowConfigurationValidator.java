@@ -29,30 +29,13 @@ import java.util.ArrayList;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.apache.logging.log4j.util.Strings;
-import org.jspecify.annotations.NonNull;
-import org.springframework.beans.factory.ObjectProvider;
-import org.springframework.boot.ApplicationArguments;
-import org.springframework.boot.ApplicationRunner;
 import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
-public class FlowConfigurationValidator implements ApplicationRunner {
+public class FlowConfigurationValidator {
 
-    private final ObjectProvider<PostLoadConfigurationVisitor> postLoadConfiguration;
-    private final ObjectProvider<PreLoadConfigurationVisitor> preLoadConfiguration;
     private final FlowProperties flowProperties;
-
-    @Override
-    public void run(@NonNull ApplicationArguments args) {
-        preLoadConfiguration.orderedStream().forEach(hook -> hook.preLoadConfiguration(flowProperties.configuration()));
-
-        validate();
-
-        postLoadConfiguration
-                .orderedStream()
-                .forEach(hook -> hook.postLoadConfiguration(flowProperties.configuration()));
-    }
 
     public void validate() {
         List<String> errors = new ArrayList<>();

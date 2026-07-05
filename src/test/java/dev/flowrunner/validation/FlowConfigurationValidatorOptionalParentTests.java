@@ -24,40 +24,28 @@ package dev.flowrunner.validation;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import dev.flowrunner.FlowrunnerApplication;
-import java.io.IOException;
-import java.io.UncheckedIOException;
+import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.env.YamlPropertySourceLoader;
-import org.springframework.boot.test.context.runner.ApplicationContextRunner;
-import org.springframework.core.io.ClassPathResource;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.TestConstructor;
+import org.springframework.test.context.TestConstructor.AutowireMode;
 
+@SpringBootTest(
+        properties = {
+                "spring.config.location=classpath:/flow-test-optional-parent-invalid.yaml",
+                "flowrunner.flow.validate-on-startup=false"
+        })
+@RequiredArgsConstructor
+@TestConstructor(autowireMode = AutowireMode.ALL)
 class FlowConfigurationValidatorOptionalParentTests {
 
-    private final ApplicationContextRunner contextRunner = new ApplicationContextRunner()
-            .withInitializer(context -> {
-                try {
-                    new YamlPropertySourceLoader()
-                            .load(
-                                    "flow-test-optional-parent-invalid",
-                                    new ClassPathResource("flow-test-optional-parent-invalid.yaml"))
-                            .forEach(propertySource ->
-                                    context.getEnvironment().getPropertySources().addFirst(propertySource));
-                } catch (IOException e) {
-                    throw new UncheckedIOException(e);
-                }
-            })
-            .withUserConfiguration(FlowrunnerApplication.class);
+    private final FlowConfigurationValidator flowConfigurationValidator;
 
     @Test
     void reportsRequiredChildOfAbsentOptionalDimension() {
-        contextRunner.run(context -> {
-            FlowConfigurationValidator flowConfigurationValidator = context.getBean(FlowConfigurationValidator.class);
-
-            assertThatThrownBy(flowConfigurationValidator::validate)
-                    .isInstanceOf(FlowConfigurationValidationException.class)
-                    .hasMessageContaining(
-                            "Missing required dimension 'environment[dev].application[customer].channel.locale'");
-        });
+        assertThatThrownBy(flowConfigurationValidator::validate)
+                .isInstanceOf(FlowConfigurationValidationException.class)
+                .hasMessageContaining(
+                        "Missing required dimension 'environment[dev].application[customer].channel.locale'");
     }
 }

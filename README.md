@@ -97,7 +97,9 @@ flowrunner:
 
 ### Configuration validation
 
-At startup, the configuration is validated against the dimension tree: every branch must contain at least one instance of each dimension marked `required`. If any branch is missing a required dimension, startup fails with a `FlowConfigurationValidationException` listing every offending path, qualified by instance key — e.g. a `prod` environment without any `application` instances is reported as `Missing required dimension 'environment[prod].application'`.
+At startup, the configuration is validated against the dimension tree: every branch must contain at least one instance of each dimension marked `required`. If any branch is missing a required dimension, startup fails with a `FlowConfigurationValidationException` listing every offending path, qualified by instance key — e.g. a `prod` environment without any `application` instances is reported as `Missing required dimension 'environment[prod].application'`. An absent optional dimension doesn't exempt its subtree: required dimensions nested below it are still reported.
+
+Startup validation can be turned off with `flowrunner.flow.validate-on-startup: false`; `FlowConfigurationValidator.validate()` can then be invoked on demand.
 
 Given the dimension tree above (environment and application required, channel optional), this configuration fails validation:
 
