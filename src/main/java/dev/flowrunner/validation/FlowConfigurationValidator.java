@@ -74,8 +74,12 @@ public class FlowConfigurationValidator implements ApplicationRunner {
                     .filter(instance -> dimension.key().equals(instance.getDimension()))
                     .toList();
 
-            if (dimension.required() && matching.isEmpty()) {
-                errors.add("Missing required dimension '%s'".formatted(dimensionPath));
+            if (matching.isEmpty()) {
+                if (dimension.required()) {
+                    errors.add("Missing required dimension '%s'".formatted(dimensionPath));
+                } else {
+                    validate(dimension.children(), List.of(), dimensionPath + ".", errors);
+                }
             }
 
             for (FlowDimensionInstance instance : matching) {

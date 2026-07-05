@@ -1,0 +1,25 @@
+flowrunner:
+  flow:
+    dimensions:
+      - key: environment
+        name: Environment
+        required: true
+        children:
+          - key: application
+            name: Application
+            required: true
+            children:
+              - key: channel
+                name: Channel
+                required: false
+                children:
+                  - key: locale
+                    name: Locale
+                    required: true
+    configuration:
+      - dimension: environment
+        key: dev
+        children:
+          - dimension: application
+            key: customer
+            name: Customer
