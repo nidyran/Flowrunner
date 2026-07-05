@@ -10,6 +10,13 @@ Flowrunner lets developers and testers define, configure, and run API flows — 
 
 > ⚠️ **Project status**: Flowrunner is actively under development and is not ready for usage yet.
 
+## Built with
+
+[![Java](https://img.shields.io/badge/Java-21-orange)](https://openjdk.org/projects/jdk/21/)
+[![Spring Boot](https://img.shields.io/badge/Spring_Boot-4.1.0-6DB33F)](https://spring.io/projects/spring-boot)
+[![REST Assured](https://img.shields.io/badge/REST_Assured-6.0.0-DF4C4C)](https://rest-assured.io/)
+[![Jackson](https://img.shields.io/badge/Jackson-3.1.4-brightgreen)](https://github.com/FasterXML/jackson)
+
 ## Why this project exists
 
 Flowrunner is a ground-up rebuild of a tool I originally wrote for a specific project — one whose dimensions were hardcoded to that project's world. This version generalizes the idea: dimensions are entirely yours to define.
@@ -35,13 +42,6 @@ The flow runner's logger will support rich, structured output:
 - [ ] Complete the migration of the project with the main features
 - [ ] Headless mode to run the existing flows and generate a report from CI
 - [ ] Allow defining flows in a declarative way
-
-## Built with
-
-[![Java](https://img.shields.io/badge/Java-21-orange)](https://openjdk.org/projects/jdk/21/)
-[![Spring Boot](https://img.shields.io/badge/Spring_Boot-4.1.0-6DB33F)](https://spring.io/projects/spring-boot)
-[![REST Assured](https://img.shields.io/badge/REST_Assured-6.0.0-DF4C4C)](https://rest-assured.io/)
-[![Jackson](https://img.shields.io/badge/Jackson-3.1.4-brightgreen)](https://github.com/FasterXML/jackson)
 
 ## Concepts
 
