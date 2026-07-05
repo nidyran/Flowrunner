@@ -72,14 +72,26 @@ public class FlowConfigurationValidator implements ApplicationRunner {
 
         for (FlowDimension dimension : dimensions) {
             String dimensionPath = path + dimension.key();
-            JsonNode node = configuration.path(dimension.key());
-            boolean hasValue = !node.path("value").isMissingNode() && !node.path("value").isNull();
+            JsonNode nodes = configuration.path(dimension.key());
 
-            if (dimension.required() && !hasValue) {
+            if (dimension.required() && nodes.isEmpty()) {
                 errors.add("Missing required dimension '%s'".formatted(dimensionPath));
             }
 
-            validate(dimension.children(), node, dimensionPath + ".", errors);
+            int index = 0;
+            for (JsonNode node : nodes) {
+                String indexedPath = "%s[%d]".formatted(dimensionPath, index++);
+                JsonNode valueNode = node.path("value");
+                boolean hasValue = !valueNode.isMissingNode()
+                        && !valueNode.isNull()
+                        && !(valueNode.isTextual() && valueNode.asString().isBlank());
+
+                if (!hasValue) {
+                    errors.add("Missing value for dimension '%s'".formatted(indexedPath));
+                }
+
+                validate(dimension.children(), node, indexedPath + ".", errors);
+            }
         }
     }
 }

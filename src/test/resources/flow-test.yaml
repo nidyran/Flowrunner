@@ -14,8 +14,8 @@ flowrunner:
                 required: false
     configuration:
       environment:
-        value: dev
-        application:
-          value: Customer
-          channel:
-            value: Web
+        - value: dev
+          application:
+            - value: Customer
+              channel:
+                - value: Web

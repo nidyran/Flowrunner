@@ -1,13 +1,8 @@
-spring:
-  application:
-    name: flowrunner
-
 flowrunner:
   flow:
     dimensions:
       - key: environment
         name: Environment
-        defaultValue: local
         required: true
         children:
           - key: application
@@ -16,11 +11,16 @@ flowrunner:
             children:
               - key: channel
                 name: Channel
-                defaultValue: Web
                 required: false
     configuration:
       environment:
         - value: dev
+          application:
+            - value: Customer
+              channel:
+                - value: Web
+            - value:
+        - value: prod
           application:
             - value: Customer
               channel:
