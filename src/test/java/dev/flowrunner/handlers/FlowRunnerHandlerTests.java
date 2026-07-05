@@ -93,6 +93,80 @@ class FlowRunnerHandlerTests {
         }
     }
 
+    private static class OAuth2Handler implements FlowRunnerHandler {
+        @Override
+        public void run(Map<String, String> parameters) {
+        }
+
+        @Override
+        public String supportedDimensionsPattern() {
+            return "oauth2_.*";
+        }
+
+        @Override
+        public String module() {
+            return "auth";
+        }
+    }
+
+    private static class SendSMSHandler implements FlowRunnerHandler {
+        @Override
+        public void run(Map<String, String> parameters) {
+        }
+
+        @Override
+        public String supportedDimensionsPattern() {
+            return "sms_.*";
+        }
+
+        @Override
+        public String module() {
+            return "notification";
+        }
+    }
+
+    private static class CustomDescriptionHandler implements FlowRunnerHandler {
+        @Override
+        public void run(Map<String, String> parameters) {
+        }
+
+        @Override
+        public String supportedDimensionsPattern() {
+            return ".*";
+        }
+
+        @Override
+        public String module() {
+            return "test";
+        }
+
+        @Override
+        public String description() {
+            return "Custom handler description";
+        }
+    }
+
+    private static class CustomParametersHandler implements FlowRunnerHandler {
+        @Override
+        public void run(Map<String, String> parameters) {
+        }
+
+        @Override
+        public String supportedDimensionsPattern() {
+            return ".*";
+        }
+
+        @Override
+        public String module() {
+            return "test";
+        }
+
+        @Override
+        public Map<String, String> getSupportedParameters() {
+            return Map.of("param1", "First parameter", "param2", "Second parameter");
+        }
+    }
+
     @Test
     void testFriendlyNameSimpleClass() {
         var handler = new TestHandler();
@@ -118,14 +192,91 @@ class FlowRunnerHandlerTests {
     }
 
     @Test
+    void testFriendlyNameWithNumbers() {
+        var handler = new OAuth2Handler();
+        assertEquals("O Auth 2", handler.friendlyName());
+    }
+
+    @Test
+    void testFriendlyNameWithConsecutiveAcronyms() {
+        var handler = new SendSMSHandler();
+        assertEquals("Send SMS", handler.friendlyName());
+    }
+
+    @Test
     void testDefaultDescription() {
         var handler = new TestHandler();
         assertEquals("", handler.description());
     }
 
     @Test
+    void testCustomDescription() {
+        var handler = new CustomDescriptionHandler();
+        assertEquals("Custom handler description", handler.description());
+    }
+
+    @Test
     void testDefaultGetSupportedParameters() {
         var handler = new TestHandler();
         assertEquals(0, handler.getSupportedParameters().size());
+    }
+
+    @Test
+    void testCustomGetSupportedParameters() {
+        var handler = new CustomParametersHandler();
+        Map<String, String> params = handler.getSupportedParameters();
+        assertEquals(2, params.size());
+        assertEquals("First parameter", params.get("param1"));
+        assertEquals("Second parameter", params.get("param2"));
+    }
+
+    @Test
+    void testSupportedDimensionsPatternForOAuth2() {
+        var handler = new OAuth2Handler();
+        assertEquals("oauth2_.*", handler.supportedDimensionsPattern());
+    }
+
+    @Test
+    void testSupportedDimensionsPatternForSMS() {
+        var handler = new SendSMSHandler();
+        assertEquals("sms_.*", handler.supportedDimensionsPattern());
+    }
+
+    @Test
+    void testModuleForTestHandler() {
+        var handler = new TestHandler();
+        assertEquals("test", handler.module());
+    }
+
+    @Test
+    void testModuleForOAuth2Handler() {
+        var handler = new OAuth2Handler();
+        assertEquals("auth", handler.module());
+    }
+
+    @Test
+    void testModuleForSendSMSHandler() {
+        var handler = new SendSMSHandler();
+        assertEquals("notification", handler.module());
+    }
+
+    @Test
+    void testRunMethodDoesNotThrow() {
+        var handler = new TestHandler();
+        Map<String, String> params = Map.of("key", "value");
+        handler.run(params);
+    }
+
+    @Test
+    void testRunMethodWithEmptyParameters() {
+        var handler = new TestHandler();
+        handler.run(Map.of());
+    }
+
+    @Test
+    void testRunMethodWithMultipleParameters() {
+        var handler = new CustomParametersHandler();
+        Map<String, String> params = Map.of("param1", "value1", "param2", "value2", "param3", "value3");
+        handler.run(params);
     }
 }
