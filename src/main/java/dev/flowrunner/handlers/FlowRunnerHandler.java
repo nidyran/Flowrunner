@@ -22,12 +22,11 @@
  */
 package dev.flowrunner.handlers;
 
-import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.Collections;
+import java.util.Map;
+import org.apache.commons.lang3.StringUtils;
 
 public interface FlowRunnerHandler {
-    Pattern WORD_PATTERN = Pattern.compile("([A-Z]+(?=[A-Z][a-z]|$)|[A-Z][a-z]+|[a-z]+|\\d+)");
 
     void run(Map<String, String> parameters);
 
@@ -40,28 +39,8 @@ public interface FlowRunnerHandler {
      * Implementations can override for custom naming.
      */
     default String friendlyName() {
-        return String.join(" ", classNameWords());
-    }
-
-    /**
-     * Splits this handler's simple class name (with the trailing "Handler" removed)
-     * into its constituent words, preserving the original casing of each word so
-     * acronyms remain distinguishable from regular words.
-     */
-    private List<String> classNameWords() {
-        String className = this.getClass().getSimpleName();
-        if (className.endsWith("Handler")) {
-            className = className.substring(0, className.length() - 7);
-        }
-        if (className.isEmpty()) {
-            return Collections.emptyList();
-        }
-        Matcher matcher = WORD_PATTERN.matcher(className);
-        List<String> words = new ArrayList<>();
-        while (matcher.find()) {
-            words.add(matcher.group());
-        }
-        return words;
+        String className = StringUtils.removeEnd(this.getClass().getSimpleName(), "Handler");
+        return String.join(" ", StringUtils.splitByCharacterTypeCamelCase(className));
     }
 
     String module();
