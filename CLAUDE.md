@@ -29,6 +29,17 @@ Flowrunner is a business-agnostic, declarative flow/process execution engine (Ja
 - The build targets Java 21. Running tests on a newer JDK (e.g. an IDE pointing at JDK 25) breaks the JaCoCo agent with "Unsupported class file major version"; fix the IDE/JDK selection, not the pom.
 - Dependency and plugin versions come from the Spring Boot parent BOM wherever possible; don't add new dependencies without asking.
 
+## Code practices
+
+Standards followed across the codebase — new code must match them:
+
+- Dependency injection is constructor-based only: `private final` attributes with `@RequiredArgsConstructor` on top of every Spring component class. No field or setter injection, no `@Autowired`.
+- Optional or multiple collaborators (e.g. the pre/post load visitors) are injected as `ObjectProvider<T>` and consumed with `orderedStream()`, so zero-to-many beans work without `required = false` or `List` injection.
+- Immutable types are records; mutable model classes use Lombok `@Getter`/`@Setter` (no hand-written accessors or builders).
+- Nullness is annotated with jspecify (`@NonNull`) where the contract matters.
+- String composition uses `"...".formatted(...)`; shared constants (e.g. `Strings.EMPTY`) over literals.
+- Validation-style operations collect all errors into a list and fail once at the end, rather than failing fast on the first.
+
 ## Code style
 
 - No defensive dual-shape handling: when code would need a conditional only to tolerate multiple equivalent input formats, normalize the input (fix the YAML/config/fixture) to one canonical form and keep the code single-path.
