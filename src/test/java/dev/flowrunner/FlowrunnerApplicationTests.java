@@ -25,6 +25,10 @@ package dev.flowrunner;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
+/**
+ * Covers application bootstrap: the Spring context starts with the default
+ * (empty) configuration, including the startup validation run.
+ */
 @SpringBootTest
 class FlowrunnerApplicationTests {
 

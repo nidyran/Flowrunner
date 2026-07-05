@@ -31,7 +31,16 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.TestConstructor;
 import org.springframework.test.context.TestConstructor.AutowireMode;
 
-@SpringBootTest
+/**
+ * Covers binding of {@code flowrunner.flow} properties from YAML:
+ * <ul>
+ *   <li>root dimensions bind with key, name, default value and required flag</li>
+ *   <li>nested child dimensions bind recursively (environment → application → channel)</li>
+ *   <li>configuration binds directly to the {@link FlowDimensionInstance} tree,
+ *       including metadata entries and nested children</li>
+ * </ul>
+ */
+@SpringBootTest(properties = "spring.config.location=classpath:/flow-properties-test.yaml")
 @RequiredArgsConstructor
 @TestConstructor(autowireMode = AutowireMode.ALL)
 class FlowPropertiesTests {
@@ -47,13 +56,13 @@ class FlowPropertiesTests {
 
     @Test
     void injectsNestedChildDimensions() {
-        FlowDimension environment = flowProperties.dimensions().get(0);
+        FlowDimension environment = flowProperties.dimensions().getFirst();
 
         assertThat(environment.children())
                 .extracting(FlowDimension::key, FlowDimension::name, FlowDimension::required)
                 .containsExactly(Tuple.tuple("application", "Application", true));
 
-        FlowDimension application = environment.children().get(0);
+        FlowDimension application = environment.children().getFirst();
 
         assertThat(application.children())
                 .extracting(
@@ -70,7 +79,7 @@ class FlowPropertiesTests {
                 .extracting(FlowDimensionInstance::getDimension, FlowDimensionInstance::getKey)
                 .containsExactly(Tuple.tuple("environment", "dev"));
 
-        FlowDimensionInstance dev = flowProperties.configuration().get(0);
+        FlowDimensionInstance dev = flowProperties.configuration().getFirst();
         assertThat(dev.getMetadata()).containsEntry("host", "localhost").containsEntry("port", 8080);
 
         assertThat(dev.getChildren())

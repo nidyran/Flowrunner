@@ -30,6 +30,14 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.TestConstructor;
 import org.springframework.test.context.TestConstructor.AutowireMode;
 
+/**
+ * Covers required dimensions nested under absent optional ones: the optional
+ * channel dimension has a required locale child, and a configuration without
+ * any channel instances fails with the fully qualified path
+ * {@code environment[dev].application[customer].channel.locale}. Startup
+ * validation is disabled so the context boots and {@code validate()} is
+ * invoked directly.
+ */
 @SpringBootTest(
         properties = {
                 "spring.config.location=classpath:/flow-test-optional-parent-invalid.yaml",

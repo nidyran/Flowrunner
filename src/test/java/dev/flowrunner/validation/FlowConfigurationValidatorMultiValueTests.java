@@ -30,6 +30,12 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.TestConstructor;
 import org.springframework.test.context.TestConstructor.AutowireMode;
 
+/**
+ * Covers validation of a configuration with multiple instances per dimension:
+ * two environments (dev, prod), several applications per environment and several
+ * channels per application, all satisfying the required dimensions, pass
+ * validation without throwing.
+ */
 @SpringBootTest(properties = "spring.config.location=classpath:/flow-test-multi.yaml")
 @RequiredArgsConstructor
 @TestConstructor(autowireMode = AutowireMode.ALL)

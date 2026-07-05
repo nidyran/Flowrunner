@@ -30,6 +30,11 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.TestConstructor;
 import org.springframework.test.context.TestConstructor.AutowireMode;
 
+/**
+ * Covers the happy path of configuration validation: a single branch
+ * (environment → application → channel) where every required dimension has an
+ * instance passes without throwing, including at startup.
+ */
 @SpringBootTest(properties = "spring.config.location=classpath:/flow-test.yaml")
 @RequiredArgsConstructor
 @TestConstructor(autowireMode = AutowireMode.ALL)

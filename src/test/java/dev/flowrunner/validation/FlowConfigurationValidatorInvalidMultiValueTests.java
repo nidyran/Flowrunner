@@ -31,6 +31,14 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.TestConstructor;
 import org.springframework.test.context.TestConstructor.AutowireMode;
 
+/**
+ * Covers validation failure isolation across branches: with two environments
+ * where only prod is missing its required application instances, validation
+ * throws {@link FlowConfigurationValidationException} naming exactly
+ * {@code environment[prod].application}, without flagging the healthy dev
+ * branch. Startup validation is disabled so the context boots and
+ * {@code validate()} is invoked directly.
+ */
 @SpringBootTest(
         properties = {
                 "spring.config.location=classpath:/flow-test-multi-invalid.yaml",

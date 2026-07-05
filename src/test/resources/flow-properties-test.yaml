@@ -1,0 +1,30 @@
+flowrunner:
+  flow:
+    dimensions:
+      - key: environment
+        name: Environment
+        defaultValue: local
+        required: true
+        children:
+          - key: application
+            name: Application
+            required: true
+            children:
+              - key: channel
+                name: Channel
+                defaultValue: Web
+                required: false
+    configuration:
+      - dimension: environment
+        key: dev
+        metadata:
+          host: localhost
+          port: 8080
+        children:
+          - dimension: application
+            key: customer
+            name: Customer
+            children:
+              - dimension: channel
+                key: WEB
+                name: Web

@@ -33,6 +33,12 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.test.context.TestConstructor;
 import org.springframework.test.context.TestConstructor.AutowireMode;
 
+/**
+ * Covers the startup lifecycle around validation: registered
+ * {@link PreLoadConfigurationVisitor} and {@link PostLoadConfigurationVisitor}
+ * beans are invoked at application startup, in that order, around a successful
+ * validation.
+ */
 @SpringBootTest(properties = "spring.config.location=classpath:/flow-test.yaml")
 @RequiredArgsConstructor
 @TestConstructor(autowireMode = AutowireMode.ALL)
