@@ -7,9 +7,7 @@ on:
     branches: [main]
 
 permissions:
-  contents: read
-  pages: write
-  id-token: write
+  contents: write
 
 jobs:
   build:
@@ -27,11 +25,20 @@ jobs:
       - name: Build and test
         run: mvn -B verify
 
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v4
+      - name: Generate coverage badge
+        uses: cicirello/jacoco-badge-generator@v2
         with:
-          file: ./target/site/jacoco/jacoco.xml
-          flags: unittests
-          name: codecov-umbrella
-        env:
-          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+          jacoco-csv-file: target/site/jacoco/jacoco.csv
+          badges-directory: .github/badges
+          generate-coverage-badge: true
+
+      - name: Commit coverage badge
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+          if [[ -n "$(git status --porcelain .github/badges)" ]]; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add .github/badges
+            git commit -m "Update coverage badge"
+            git push
+          fi
