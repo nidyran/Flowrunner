@@ -22,6 +22,7 @@
  */
 package dev.flowrunner.handlers;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.Map;
@@ -32,11 +33,11 @@ import org.springframework.boot.test.context.SpringBootTest;
  * Covers the {@link FlowRunnerHandler} contract and its default methods:
  * <ul>
  *   <li>friendly names derived from class names — simple names, multi-word names,
- *       acronyms (single, consecutive), digits, names without the "Handler" suffix
+ *       acronyms (single, consecutive), digits, names without the "Handler" suffix,
  *       and the bare "Handler" edge case</li>
  *   <li>default and overridden {@code description()} and {@code getSupportedParameters()}</li>
  *   <li>{@code supportedDimensionsPattern()} and {@code module()} of implementations</li>
- *   <li>{@code run(...)} accepting empty, single and multiple parameters</li>
+ *   <li>{@code run(...)} accepting empty, single, and multiple parameters</li>
  * </ul>
  */
 @SpringBootTest
@@ -45,6 +46,7 @@ class FlowRunnerHandlerTests {
     private static class TestHandler implements FlowRunnerHandler {
         @Override
         public void run(Map<String, String> parameters) {
+            // no-op: these test handlers only exercise the interface default methods
         }
 
         @Override
@@ -61,6 +63,7 @@ class FlowRunnerHandlerTests {
     private static class LimitOTPResendsHandler implements FlowRunnerHandler {
         @Override
         public void run(Map<String, String> parameters) {
+            // no-op: these test handlers only exercise the interface default methods
         }
 
         @Override
@@ -77,6 +80,7 @@ class FlowRunnerHandlerTests {
     private static class HTTPConnectionHandler implements FlowRunnerHandler {
         @Override
         public void run(Map<String, String> parameters) {
+            // no-op: these test handlers only exercise the interface default methods
         }
 
         @Override
@@ -93,6 +97,7 @@ class FlowRunnerHandlerTests {
     private static class OTPHandler implements FlowRunnerHandler {
         @Override
         public void run(Map<String, String> parameters) {
+            // no-op: these test handlers only exercise the interface default methods
         }
 
         @Override
@@ -109,6 +114,7 @@ class FlowRunnerHandlerTests {
     private static class OAuth2Handler implements FlowRunnerHandler {
         @Override
         public void run(Map<String, String> parameters) {
+            // no-op: these test handlers only exercise the interface default methods
         }
 
         @Override
@@ -125,6 +131,7 @@ class FlowRunnerHandlerTests {
     private static class SendSMSHandler implements FlowRunnerHandler {
         @Override
         public void run(Map<String, String> parameters) {
+            // no-op: these test handlers only exercise the interface default methods
         }
 
         @Override
@@ -141,6 +148,7 @@ class FlowRunnerHandlerTests {
     private static class CustomDescriptionHandler implements FlowRunnerHandler {
         @Override
         public void run(Map<String, String> parameters) {
+            // no-op: these test handlers only exercise the interface default methods
         }
 
         @Override
@@ -162,6 +170,7 @@ class FlowRunnerHandlerTests {
     private static class CustomParametersHandler implements FlowRunnerHandler {
         @Override
         public void run(Map<String, String> parameters) {
+            // no-op: these test handlers only exercise the interface default methods
         }
 
         @Override
@@ -183,6 +192,7 @@ class FlowRunnerHandlerTests {
     private static class CheckoutFlow implements FlowRunnerHandler {
         @Override
         public void run(Map<String, String> parameters) {
+            // no-op: these test handlers only exercise the interface default methods
         }
 
         @Override
@@ -199,6 +209,7 @@ class FlowRunnerHandlerTests {
     private static class Handler implements FlowRunnerHandler {
         @Override
         public void run(Map<String, String> parameters) {
+            // no-op: these test handlers only exercise the interface default methods
         }
 
         @Override
@@ -321,19 +332,19 @@ class FlowRunnerHandlerTests {
     void testRunMethodDoesNotThrow() {
         var handler = new TestHandler();
         Map<String, String> params = Map.of("key", "value");
-        handler.run(params);
+        assertDoesNotThrow(() -> handler.run(params));
     }
 
     @Test
     void testRunMethodWithEmptyParameters() {
         var handler = new TestHandler();
-        handler.run(Map.of());
+        assertDoesNotThrow(() -> handler.run(Map.of()));
     }
 
     @Test
     void testRunMethodWithMultipleParameters() {
         var handler = new CustomParametersHandler();
         Map<String, String> params = Map.of("param1", "value1", "param2", "value2", "param3", "value3");
-        handler.run(params);
+        assertDoesNotThrow(() -> handler.run(params));
     }
 }
