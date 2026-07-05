@@ -130,6 +130,20 @@ Two extension points let you hook into this validation lifecycle by registering 
 
 Both receive the list of root `FlowDimensionInstance` objects; instances are mutable, so visitors can adjust the tree in place. Any number of beans of each type can be registered; they run in bean order.
 
+### Supported dimension patterns
+
+A flow handler declares which dimension instances it can run against via `supportedDimensionsPattern()` — a regular expression matched against dot-separated instance-key paths through the configured dimension tree (e.g. `dev.customer.WEB`), one segment per dimension level. Instead of hand-writing the regex, build it fluently with `DimensionPattern`:
+
+```java
+// any environment -> customer application -> anything below
+DimensionPattern.any().with("customer").build();
+
+// dev or uat environment -> any application -> WEB channel, exactly that depth
+DimensionPattern.anyOf("dev", "uat").any().with("WEB").exact().build();
+```
+
+By default a pattern also matches any deeper path below its last segment; end the chain with `exact()` to match that depth only. Keys are quoted, so regex metacharacters in instance keys are matched literally.
+
 ## Properties
 
 | Property | Type | Default | Description |

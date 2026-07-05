@@ -31,6 +31,16 @@ public interface FlowRunnerHandler {
 
     void run(Map<String, String> parameters);
 
+    /**
+     * Returns the pattern deciding which dimension instances this flow supports.
+     * The pattern is a regular expression matched against dot-separated
+     * instance-key paths through the configured dimension tree, one segment per
+     * dimension level (e.g. {@code dev.customer.WEB} for environment
+     * {@code dev} -> application {@code customer} -> channel {@code WEB}).
+     * Use {@link DimensionPattern} to build it fluently, e.g.
+     * {@code DimensionPattern.any().with("customer").build()} for any
+     * environment -> customer application -> anything below.
+     */
     String supportedDimensionsPattern();
 
     /**

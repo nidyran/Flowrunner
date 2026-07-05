@@ -1,0 +1,118 @@
+/*
+ * Copyright (c) 2026 Nidhal Ben Yarou
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ *
+ */
+package dev.flowrunner.handlers;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
+
+import java.util.regex.Pattern;
+import org.junit.jupiter.api.Test;
+import org.springframework.boot.test.context.SpringBootTest;
+
+/**
+ * Covers the {@link DimensionPattern} builder:
+ * <ul>
+ *   <li>any().with(key) matches the keyed segment at that level, any deeper path
+ *       by default, and rejects other keys</li>
+ *   <li>anyOf(...) matches each alternative and rejects others</li>
+ *   <li>exact() restricts matching to exactly the chain's depth</li>
+ *   <li>single-segment chains (any(), with(key))</li>
+ *   <li>keys containing regex metacharacters or dots are matched literally</li>
+ *   <li>built strings compile with {@link Pattern#compile}</li>
+ * </ul>
+ */
+@SpringBootTest
+class DimensionPatternTests {
+
+    @Test
+    void matchesKeyedSegmentAtAnyDepthBelow() {
+        String pattern = DimensionPattern.any().with("customer").build();
+
+        assertThat("dev.customer").matches(pattern);
+        assertThat("dev.customer.WEB").matches(pattern);
+        assertThat("dev.customer.WEB.extra").matches(pattern);
+    }
+
+    @Test
+    void rejectsOtherKeysAtTheKeyedSegment() {
+        String pattern = DimensionPattern.any().with("customer").build();
+
+        assertThat("dev.retailer.WEB").doesNotMatch(pattern);
+        assertThat("dev").doesNotMatch(pattern);
+    }
+
+    @Test
+    void matchesEachAlternativeOfAnyOf() {
+        String pattern = DimensionPattern.anyOf("dev", "uat").any().with("WEB").build();
+
+        assertThat("dev.customer.WEB").matches(pattern);
+        assertThat("uat.retailer.WEB").matches(pattern);
+        assertThat("prod.customer.WEB").doesNotMatch(pattern);
+    }
+
+    @Test
+    void exactRestrictsToTheChainsDepth() {
+        String pattern = DimensionPattern.anyOf("dev", "uat").any().with("WEB").exact().build();
+
+        assertThat("dev.customer.WEB").matches(pattern);
+        assertThat("dev.customer.WEB.extra").doesNotMatch(pattern);
+    }
+
+    @Test
+    void singleAnyMatchesEveryPath() {
+        String pattern = DimensionPattern.any().build();
+
+        assertThat("dev").matches(pattern);
+        assertThat("dev.customer.WEB").matches(pattern);
+    }
+
+    @Test
+    void singleKeyedSegmentMatchesItsBranchOnly() {
+        String pattern = DimensionPattern.with("dev").build();
+
+        assertThat("dev").matches(pattern);
+        assertThat("dev.customer").matches(pattern);
+        assertThat("uat.customer").doesNotMatch(pattern);
+    }
+
+    @Test
+    void quotesRegexMetacharactersInKeys() {
+        String pattern = DimensionPattern.with("my.app").any().build();
+
+        assertThat("my.app.customer").matches(pattern);
+        assertThat("myXapp.customer").doesNotMatch(pattern);
+
+        String plusPattern = DimensionPattern.with("a+b").build();
+        assertThat("a+b").matches(plusPattern);
+        assertThat("aab").doesNotMatch(plusPattern);
+    }
+
+    @Test
+    void buildsCompilableRegex() {
+        assertThatCode(() -> Pattern.compile(
+                DimensionPattern.anyOf("dev", "uat").any().with("WEB").exact().build()))
+                .doesNotThrowAnyException();
+        assertThatCode(() -> Pattern.compile(DimensionPattern.any().with("customer").build()))
+                .doesNotThrowAnyException();
+    }
+}
