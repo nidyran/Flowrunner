@@ -167,10 +167,54 @@ class FlowRunnerHandlerTests {
         }
     }
 
+    private static class CheckoutFlow implements FlowRunnerHandler {
+        @Override
+        public void run(Map<String, String> parameters) {
+        }
+
+        @Override
+        public String supportedDimensionsPattern() {
+            return ".*";
+        }
+
+        @Override
+        public String module() {
+            return "commerce";
+        }
+    }
+
+    private static class Handler implements FlowRunnerHandler {
+        @Override
+        public void run(Map<String, String> parameters) {
+        }
+
+        @Override
+        public String supportedDimensionsPattern() {
+            return ".*";
+        }
+
+        @Override
+        public String module() {
+            return "test";
+        }
+    }
+
     @Test
     void testFriendlyNameSimpleClass() {
         var handler = new TestHandler();
         assertEquals("Test", handler.friendlyName());
+    }
+
+    @Test
+    void testFriendlyNameWithoutHandlerSuffix() {
+        var handler = new CheckoutFlow();
+        assertEquals("Checkout Flow", handler.friendlyName());
+    }
+
+    @Test
+    void testFriendlyNameForBareHandlerClass() {
+        var handler = new Handler();
+        assertEquals("", handler.friendlyName());
     }
 
     @Test

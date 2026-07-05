@@ -59,9 +59,7 @@ public interface FlowRunnerHandler {
         Matcher matcher = WORD_PATTERN.matcher(className);
         List<String> words = new ArrayList<>();
         while (matcher.find()) {
-            if (!matcher.group().isEmpty()) {
-                words.add(matcher.group());
-            }
+            words.add(matcher.group());
         }
         return words;
     }
