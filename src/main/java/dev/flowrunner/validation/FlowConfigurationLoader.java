@@ -34,7 +34,7 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 @ConditionalOnBooleanProperty(name = "flowrunner.flow.validate-on-startup", matchIfMissing = true)
-public class FlowConfigurationStartupRunner implements ApplicationRunner {
+public class FlowConfigurationLoader implements ApplicationRunner {
 
     private final ObjectProvider<PostLoadConfigurationVisitor> postLoadConfiguration;
     private final ObjectProvider<PreLoadConfigurationVisitor> preLoadConfiguration;

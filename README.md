@@ -101,6 +101,14 @@ At startup, the configuration is validated against the dimension tree: every bra
 
 Startup validation can be turned off with `flowrunner.flow.validate-on-startup: false`; `FlowConfigurationValidator.validate()` can then be invoked on demand.
 
+### Properties
+
+| Property | Type | Default | Description |
+|---|---|---|---|
+| `flowrunner.flow.dimensions` | list of `FlowDimension` | — | The dimension tree describing the axes flows can be run against. |
+| `flowrunner.flow.configuration` | list of `FlowDimensionInstance` | — | The configured dimension instances, validated against the dimension tree at startup. |
+| `flowrunner.flow.validate-on-startup` | boolean | `true` | Whether the configuration is validated (and the pre/post load visitors run) at application startup. |
+
 Given the dimension tree above (environment and application required, channel optional), this configuration fails validation:
 
 ```yaml
