@@ -20,194 +20,48 @@ flowrunner:
             children:
               - key: channel
                 name: Channel
-                defaultValue: Web
+                defaultValue: web
                 required: false
-
     configuration:
-      # LOCAL environment
       - dimension: environment
         key: local
-        name: Local
-        metadata:
-          host: localhost
-          port: 8080
-          protocol: http
+        name: Local Environment
         children:
-          # Local - Customer App
           - dimension: application
             key: customer
-            name: Customer
-            metadata:
-              prefix: /customer
-              baseUrl: "http://localhost:8080/customer"
+            name: Customer Application
             children:
               - dimension: channel
-                key: Web
+                key: web
                 name: Web
-                metadata:
-                  userAgent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
               - dimension: channel
-                key: Mob
+                key: mob
                 name: Mobile
-                metadata:
-                  userAgent: "Mozilla/5.0 (Linux; Android 11)"
-              - dimension: channel
-                key: API
-                name: API
-                metadata:
-                  contentType: "application/json"
-
-          # Local - Backoffice App
           - dimension: application
             key: backoffice
-            name: Backoffice
-            metadata:
-              prefix: /backoffice
-              baseUrl: "http://localhost:8080/backoffice"
+            name: Backoffice Console
             children:
               - dimension: channel
-                key: Web
+                key: web
                 name: Web
-                metadata:
-                  userAgent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
-
-      # DEV environment
       - dimension: environment
-        key: dev
-        name: Development
-        metadata:
-          host: api-dev.flowrunner.local
-          port: 8443
-          protocol: https
+        key: platform-dev
+        name: Platform Development Environment
         children:
-          # Dev - Customer App
           - dimension: application
             key: customer
             name: Customer
-            metadata:
-              prefix: /customer
-              baseUrl: "https://api-dev.flowrunner.local/customer"
             children:
               - dimension: channel
-                key: Web
+                key: web
                 name: Web
-                metadata:
-                  userAgent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
               - dimension: channel
-                key: Mob
+                key: mob
                 name: Mobile
-                metadata:
-                  userAgent: "Mozilla/5.0 (Linux; Android 11)"
-              - dimension: channel
-                key: API
-                name: API
-                metadata:
-                  contentType: "application/json"
-
-          # Dev - Backoffice App
           - dimension: application
             key: backoffice
             name: Backoffice
-            metadata:
-              prefix: /backoffice
-              baseUrl: "https://api-dev.flowrunner.local/backoffice"
             children:
               - dimension: channel
-                key: Web
+                key: web
                 name: Web
-                metadata:
-                  userAgent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
-
-      # UAT environment
-      - dimension: environment
-        key: uat
-        name: User Acceptance Testing
-        metadata:
-          host: api-uat.flowrunner.io
-          port: 443
-          protocol: https
-        children:
-          # UAT - Customer App
-          - dimension: application
-            key: customer
-            name: Customer
-            metadata:
-              prefix: /customer
-              baseUrl: "https://api-uat.flowrunner.io/customer"
-            children:
-              - dimension: channel
-                key: Web
-                name: Web
-                metadata:
-                  userAgent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
-              - dimension: channel
-                key: Mob
-                name: Mobile
-                metadata:
-                  userAgent: "Mozilla/5.0 (Linux; Android 11)"
-              - dimension: channel
-                key: API
-                name: API
-                metadata:
-                  contentType: "application/json"
-
-          # UAT - Backoffice App
-          - dimension: application
-            key: backoffice
-            name: Backoffice
-            metadata:
-              prefix: /backoffice
-              baseUrl: "https://api-uat.flowrunner.io/backoffice"
-            children:
-              - dimension: channel
-                key: Web
-                name: Web
-                metadata:
-                  userAgent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
-
-      # PROD environment
-      - dimension: environment
-        key: prod
-        name: Production
-        metadata:
-          host: api.flowrunner.io
-          port: 443
-          protocol: https
-        children:
-          # Prod - Customer App
-          - dimension: application
-            key: customer
-            name: Customer
-            metadata:
-              prefix: /customer
-              baseUrl: "https://api.flowrunner.io/customer"
-            children:
-              - dimension: channel
-                key: Web
-                name: Web
-                metadata:
-                  userAgent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
-              - dimension: channel
-                key: Mob
-                name: Mobile
-                metadata:
-                  userAgent: "Mozilla/5.0 (Linux; Android 11)"
-              - dimension: channel
-                key: API
-                name: API
-                metadata:
-                  contentType: "application/json"
-
-          # Prod - Backoffice App
-          - dimension: application
-            key: backoffice
-            name: Backoffice
-            metadata:
-              prefix: /backoffice
-              baseUrl: "https://api.flowrunner.io/backoffice"
-            children:
-              - dimension: channel
-                key: Web
-                name: Web
-                metadata:
-                  userAgent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
