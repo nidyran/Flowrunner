@@ -1,69 +1,87 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <title>Flowrunner - Flow Execution Engine</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
         :root {
-            --primary: #3b82f6;
-            --primary-dark: #1d4ed8;
-            --success: #10b981;
-            --error: #ef4444;
-            --warning: #f59e0b;
+            --primary-color: #3b82f6;
+            --primary-hover: #2563eb;
+            --primary-active: #1d4ed8;
+            --secondary-color: #f8fafc;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --error-color: #ef4444;
             --text-primary: #1a202c;
             --text-secondary: #475569;
             --text-muted: #64748b;
-            --border: #e2e8f0;
+            --border-color: #e2e8f0;
             --bg-primary: #ffffff;
             --bg-secondary: #f5f7fa;
             --bg-tertiary: #fafbfc;
-            --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
-            --shadow-md: 0 4px 6px rgba(0,0,0,0.1);
+            --shadow-sm: 0 1px 2px 0 rgba(0,0,0,0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05);
+            --transition: all 0.2s ease;
         }
 
-        body.dark {
-            --primary: #60a5fa;
-            --primary-dark: #3b82f6;
+        body.dark-theme {
+            --primary-color: #60a5fa;
+            --primary-hover: #93c5fd;
+            --primary-active: #3b82f6;
+            --secondary-color: #1e293b;
             --text-primary: #f1f5f9;
             --text-secondary: #cbd5e1;
             --text-muted: #94a3b8;
-            --border: #334155;
+            --border-color: #334155;
             --bg-primary: #0f172a;
             --bg-secondary: #1a2332;
             --bg-tertiary: #1e293b;
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
             background: var(--bg-secondary);
             color: var(--text-primary);
             height: 100vh;
             display: flex;
             flex-direction: column;
             overflow: hidden;
+            text-rendering: optimizeLegibility;
+            -webkit-font-smoothing: antialiased;
         }
 
         .header {
             padding: 16px 24px;
             background: var(--bg-primary);
-            border-bottom: 1px solid var(--border);
+            border-bottom: 1px solid var(--border-color);
             display: flex;
             align-items: center;
             justify-content: space-between;
             flex-shrink: 0;
+            box-shadow: var(--shadow-sm);
         }
 
         .header-title {
             display: flex;
             align-items: center;
             gap: 12px;
-            font-size: 20px;
-            font-weight: 600;
+            font-size: 18px;
+            font-weight: 700;
             color: var(--text-primary);
+        }
+
+        .header-title i {
+            font-size: 24px;
+            color: var(--primary-color);
         }
 
         .header-actions {
@@ -72,110 +90,140 @@
             align-items: center;
         }
 
-        .btn {
-            padding: 8px 16px;
-            border: 1px solid var(--border);
+        .btn-icon {
+            width: 36px;
+            height: 36px;
+            border: 1px solid var(--border-color);
             border-radius: 6px;
-            background: var(--bg-primary);
-            color: var(--text-secondary);
+            background: transparent;
+            color: var(--text-muted);
             cursor: pointer;
-            font-size: 14px;
-            font-weight: 500;
-            transition: all 0.2s;
             display: flex;
             align-items: center;
-            gap: 6px;
+            justify-content: center;
+            transition: var(--transition);
+            font-size: 14px;
         }
 
-        .btn:hover {
-            background: var(--bg-secondary);
-            border-color: var(--primary);
-            color: var(--primary);
-        }
-
-        .btn-primary {
-            background: var(--primary);
-            color: white;
-            border-color: var(--primary);
-        }
-
-        .btn-primary:hover {
-            background: var(--primary-dark);
-            border-color: var(--primary-dark);
+        .btn-icon:hover {
+            background: var(--secondary-color);
+            border-color: var(--primary-color);
+            color: var(--primary-color);
         }
 
         .container {
             flex: 1;
             display: flex;
             overflow: hidden;
-            gap: 16px;
-            padding: 16px;
             min-height: 0;
         }
 
-        .panel {
+        .left-panel-container {
+            display: flex;
+            flex-direction: column;
+            position: relative;
             background: var(--bg-primary);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            padding: 20px;
-            overflow-y: auto;
-            box-shadow: var(--shadow-sm);
+            box-shadow: var(--shadow-md);
+            z-index: 10;
+            transition: width 0.3s ease;
+            height: 100%;
+            overflow: hidden;
+            min-width: 280px;
+            max-width: 400px;
+            width: 320px;
         }
 
         .left-panel {
-            width: 320px;
-            flex-shrink: 0;
+            padding: 20px;
+            overflow-y: auto;
+            overflow-x: hidden;
             display: flex;
             flex-direction: column;
             gap: 20px;
+            width: 100%;
+            flex: 1;
+            min-height: 0;
         }
+
+        .left-panel-footer {
+            padding: 16px 20px;
+            border-top: 1px solid var(--border-color);
+            background: var(--bg-primary);
+            flex-shrink: 0;
+        }
+
+        .left-panel::-webkit-scrollbar { width: 8px; }
+        .left-panel::-webkit-scrollbar-track { background: var(--bg-secondary); }
+        .left-panel::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 4px; }
 
         .right-panel {
             flex: 1;
-            min-width: 0;
             display: flex;
             flex-direction: column;
+            background: var(--bg-tertiary);
+            padding: 20px;
+            min-height: 0;
+            overflow: hidden;
         }
 
         .section {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
+            margin-bottom: 0;
         }
 
         .section-title {
-            font-size: 13px;
-            font-weight: 600;
-            text-transform: uppercase;
+            font-size: 12px;
+            font-weight: 700;
             color: var(--text-muted);
+            text-transform: uppercase;
             letter-spacing: 0.5px;
-            margin-bottom: 8px;
-        }
-
-        label {
-            font-size: 14px;
-            font-weight: 600;
-            color: var(--text-secondary);
+            margin-bottom: 12px;
             display: flex;
             align-items: center;
             gap: 6px;
         }
 
-        select, textarea, input {
+        .form-group {
+            margin-bottom: 16px;
+            position: relative;
+        }
+
+        label {
+            display: flex;
+            align-items: center;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 6px;
+            color: var(--text-secondary);
+            gap: 6px;
+        }
+
+        label i {
+            font-size: 13px;
+            color: var(--primary-color);
+            width: 14px;
+        }
+
+        .required {
+            color: var(--error-color);
+        }
+
+        select, textarea, input:not([type="checkbox"]) {
             width: 100%;
-            padding: 10px 12px;
-            border: 1px solid var(--border);
+            padding: 8px 12px;
+            border: 1px solid var(--border-color);
             border-radius: 6px;
-            font-size: 14px;
+            font-size: 13px;
             font-family: inherit;
             background: var(--bg-primary);
             color: var(--text-primary);
-            transition: all 0.2s;
+            transition: var(--transition);
+            -webkit-appearance: none;
+            appearance: none;
         }
 
-        select:focus, textarea:focus, input:focus {
+        select:focus, textarea:focus, input:not([type="checkbox"]):focus {
             outline: none;
-            border-color: var(--primary);
+            border-color: var(--primary-color);
             box-shadow: 0 0 0 3px rgba(59,130,246,0.1);
         }
 
@@ -188,198 +236,362 @@
         }
 
         textarea {
-            height: 120px;
+            height: 100px;
             font-family: 'Consolas', 'Monaco', monospace;
-            font-size: 13px;
+            font-size: 12px;
             resize: vertical;
-        }
-
-        .form-group {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
         }
 
         .button-group {
             display: flex;
             gap: 8px;
-            margin-top: 12px;
+            margin-top: 8px;
         }
 
         .button-group button {
             flex: 1;
-            padding: 10px;
-        }
-
-        .output-container {
-            flex: 1;
-            background: #1e293b;
-            color: #e2e8f0;
-            border-radius: 8px;
-            padding: 16px;
-            overflow-y: auto;
-            font-family: 'Consolas', 'Monaco', monospace;
+            padding: 10px 12px;
+            border: none;
+            border-radius: 6px;
             font-size: 13px;
-            white-space: pre-wrap;
-            word-break: break-word;
-            line-height: 1.6;
-        }
-
-        .loading {
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition);
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 12px;
-            height: 100%;
-            color: var(--text-muted);
+            gap: 6px;
+            user-select: none;
         }
 
-        .spinner {
-            width: 16px;
-            height: 16px;
+        .btn-primary {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-hover);
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .btn-primary:active {
+            background: var(--primary-active);
+            transform: translateY(0);
+        }
+
+        .btn-secondary {
+            background: var(--bg-primary);
+            color: var(--text-secondary);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-secondary:hover {
+            background: var(--secondary-color);
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+        }
+
+        .response-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            overflow: hidden;
+            min-height: 0;
+            box-shadow: var(--shadow-sm);
+            position: relative;
+        }
+
+        .response-header {
+            padding: 16px 20px;
+            background: var(--bg-tertiary);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-shrink: 0;
+        }
+
+        .response-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .response-actions {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .copy-btn {
+            padding: 6px 12px;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .copy-btn:hover {
+            background: var(--primary-hover);
+        }
+
+        .status {
+            padding: 12px 20px;
+            font-size: 13px;
+            font-weight: 500;
+            display: none;
+            border-bottom: 1px solid var(--border-color);
+            animation: slideDown 0.3s ease;
+        }
+
+        .status.loading {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(59,130,246,0.1);
+            color: #1e40af;
+        }
+
+        .status.loading::before {
+            content: '';
+            width: 14px;
+            height: 14px;
             border: 2px solid rgba(59,130,246,0.3);
-            border-top-color: var(--primary);
+            border-top: 2px solid var(--primary-color);
             border-radius: 50%;
             animation: spin 0.6s linear infinite;
+        }
+
+        .status.success {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(16,185,129,0.1);
+            color: #047857;
+        }
+
+        .status.error {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(239,68,68,0.1);
+            color: #dc2626;
         }
 
         @keyframes spin {
             to { transform: rotate(360deg); }
         }
 
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .response-output {
+            flex: 1;
+            min-height: 0;
+            background: #1e293b;
+            color: #e2e8f0;
+            padding: 16px;
+            overflow-x: auto;
+            overflow-y: auto;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 12px;
+            white-space: pre-wrap;
+            word-break: break-word;
+            line-height: 1.5;
+            user-select: text;
+        }
+
+        .log-entry {
+            margin-bottom: 8px;
+            padding: 6px 10px;
+            background: rgba(0,0,0,0.2);
+            border-radius: 4px;
+            border-left: 3px solid #60a5fa;
+        }
+
+        .log-entry.success {
+            border-left-color: #10b981;
+            color: #86efac;
+        }
+
+        .log-entry.error {
+            border-left-color: #ef4444;
+            color: #fca5a5;
+        }
+
+        .log-entry.warning {
+            border-left-color: #f59e0b;
+            color: #fcd34d;
+        }
+
         .info-badge {
             font-size: 12px;
-            padding: 4px 8px;
+            padding: 8px 12px;
             background: rgba(59,130,246,0.1);
-            color: var(--primary);
+            color: var(--primary-color);
             border-radius: 4px;
             border: 1px solid rgba(59,130,246,0.2);
+            margin-top: 8px;
         }
 
-        body.dark .output-container {
-            background: #1a2332;
-        }
-
-        @media (max-width: 1024px) {
-            .container {
-                flex-direction: column;
-            }
-            .left-panel {
-                width: 100%;
-                max-height: 40vh;
-            }
-        }
-
-        ::-webkit-scrollbar {
-            width: 8px;
-            height: 8px;
-        }
-
-        ::-webkit-scrollbar-track {
+        .handler-info {
+            margin-top: 12px;
+            padding: 10px;
             background: var(--bg-secondary);
+            border-radius: 6px;
+            font-size: 12px;
+            color: var(--text-secondary);
+            display: none;
         }
 
-        ::-webkit-scrollbar-thumb {
-            background: var(--border);
-            border-radius: 4px;
+        .handler-info.active {
+            display: block;
         }
 
-        ::-webkit-scrollbar-thumb:hover {
-            background: var(--text-muted);
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: var(--bg-secondary); }
+        ::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 4px; }
+
+        body.dark-theme .status.loading {
+            background: rgba(59,130,246,0.15);
+            color: #93c5fd;
+        }
+
+        body.dark-theme .status.success {
+            background: rgba(16,185,129,0.15);
+            color: #86efac;
+        }
+
+        body.dark-theme .status.error {
+            background: rgba(239,68,68,0.15);
+            color: #fca5a5;
         }
     </style>
 </head>
-<body id="app" class="dark">
+<body class="dark-theme">
     <div class="header">
         <div class="header-title">
-            <i class="fas fa-project-diagram" style="color: var(--primary); font-size: 24px;"></i>
+            <i class="fas fa-project-diagram"></i>
             <span>Flowrunner</span>
         </div>
         <div class="header-actions">
-            <button class="btn" onclick="toggleTheme()">
+            <button class="btn-icon" onclick="toggleTheme()" title="Toggle theme">
                 <i class="fas fa-moon"></i>
-                <span>Theme</span>
             </button>
         </div>
     </div>
 
     <div class="container">
-        <div class="left-panel panel">
-            <div class="section">
-                <div class="section-title">Configuration</div>
-                <div id="dimensionSelects"></div>
-                <div class="info-badge" id="dimensionInfo" style="display: none; margin-top: 8px;"></div>
-            </div>
+        <div class="left-panel-container">
+            <div class="left-panel">
+                <div class="section">
+                    <div class="section-title">
+                        <i class="fas fa-layer-group"></i>
+                        Configuration
+                    </div>
+                    <div id="dimensionSelects"></div>
+                    <div class="info-badge" id="dimensionInfo" style="display: none;"></div>
+                </div>
 
-            <div class="section">
-                <div class="section-title">Available Handlers</div>
-                <select id="handlerSelect" onchange="onHandlerSelect()">
-                    <option value="">Select a handler...</option>
-                </select>
-                <div id="handlerInfo" style="margin-top: 8px; padding: 12px; background: var(--bg-secondary); border-radius: 6px; font-size: 13px; color: var(--text-secondary); display: none;"></div>
-            </div>
+                <div class="section">
+                    <div class="section-title">
+                        <i class="fas fa-cube"></i>
+                        Flow Handler
+                    </div>
+                    <div class="form-group">
+                        <label for="handlerSelect">Select Handler</label>
+                        <select id="handlerSelect" onchange="onHandlerSelect()">
+                            <option value="">Loading handlers...</option>
+                        </select>
+                    </div>
+                    <div class="handler-info" id="handlerInfo"></div>
+                </div>
 
-            <div class="section">
-                <div class="section-title">Request Parameters</div>
-                <div class="form-group">
-                    <label for="requestInput">Parameters (JSON)</label>
-                    <textarea id="requestInput" placeholder='{"key": "value"}' spellcheck="false"></textarea>
+                <div class="section">
+                    <div class="section-title">
+                        <i class="fas fa-code"></i>
+                        Request Parameters
+                    </div>
+                    <div class="form-group">
+                        <label for="requestInput">Parameters (JSON)</label>
+                        <textarea id="requestInput" placeholder='{"key": "value"}' spellcheck="false"></textarea>
+                    </div>
                 </div>
             </div>
 
-            <div class="button-group" style="margin-top: auto;">
-                <button class="btn btn-primary" onclick="executeFlow()">
-                    <i class="fas fa-play"></i>
-                    <span>Execute</span>
-                </button>
-                <button class="btn" onclick="clearForm()">
-                    <i class="fas fa-redo"></i>
-                    <span>Reset</span>
-                </button>
+            <div class="left-panel-footer">
+                <div class="button-group">
+                    <button class="btn-primary" onclick="executeFlow()">
+                        <i class="fas fa-play"></i>
+                        <span>Execute</span>
+                    </button>
+                    <button class="btn-secondary" onclick="clearForm()">
+                        <i class="fas fa-redo"></i>
+                        <span>Reset</span>
+                    </button>
+                </div>
             </div>
         </div>
 
-        <div class="right-panel panel">
-            <div style="margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center;">
-                <h3 style="font-size: 14px; font-weight: 600; color: var(--text-primary);">Execution Output</h3>
-                <div id="statusBadge" style="display: none; font-size: 12px; padding: 4px 8px; border-radius: 4px; background: rgba(59,130,246,0.1); color: var(--primary);"></div>
-            </div>
-            <div class="output-container" id="output">
-                <div class="loading">
-                    <span>Ready to execute flows...</span>
+        <div class="right-panel">
+            <div class="response-container">
+                <div class="response-header">
+                    <div class="response-title">
+                        <i class="fas fa-terminal"></i>
+                        Execution Output
+                    </div>
+                    <div class="response-actions">
+                        <button class="copy-btn" onclick="copyOutput()">
+                            <i class="fas fa-copy"></i>
+                            Copy
+                        </button>
+                    </div>
                 </div>
+                <div id="status" class="status"></div>
+                <div id="output" class="response-output">Ready to execute flows...</div>
             </div>
         </div>
     </div>
 
     <script>
         const API_CONFIG = '/api/flowrunner/config';
-        const DIMENSIONS_API = '/api/flowrunner/dimensions';
-        const HANDLERS_API = '/api/flowrunner/handlers';
-
         let config = {
             dimensions: [],
             configuration: [],
             handlers: []
         };
-
-        let flatDimensions = []; // Flattened dimension hierarchy
+        let flatDimensions = [];
         let selectedPath = {};
 
         document.addEventListener('DOMContentLoaded', () => {
             loadConfiguration();
-            setupThemeToggle();
         });
 
         function toggleTheme() {
-            document.getElementById('app').classList.toggle('dark');
-            localStorage.setItem('theme', document.getElementById('app').classList.contains('dark') ? 'dark' : 'light');
+            document.body.classList.toggle('dark-theme');
+            localStorage.setItem('theme', document.body.classList.contains('dark-theme') ? 'dark' : 'light');
         }
 
-        function setupThemeToggle() {
+        function loadTheme() {
             const theme = localStorage.getItem('theme') || 'dark';
             if (theme === 'light') {
-                document.getElementById('app').classList.remove('dark');
+                document.body.classList.remove('dark-theme');
             }
         }
 
@@ -387,16 +599,9 @@
             try {
                 const response = await fetch(API_CONFIG);
                 config = await response.json();
-
-                // Flatten the nested dimension hierarchy
                 flatDimensions = flattenDimensions(config.dimensions);
-
-                // Create cascading dimension selects
                 renderDimensionSelects();
-
-                // Populate handlers
                 populateHandlers();
-
                 log('✅ Configuration loaded successfully');
             } catch (error) {
                 log('❌ Error loading configuration: ' + error.message, 'error');
@@ -424,11 +629,10 @@
             selectedPath = {};
 
             if (!flatDimensions || flatDimensions.length === 0) {
-                container.innerHTML = '<p style="color: var(--text-muted); font-size: 13px;">No dimensions configured</p>';
+                container.innerHTML = '<p style="color: var(--text-muted); font-size: 12px;">No dimensions configured</p>';
                 return;
             }
 
-            // Create selects for each dimension level (flat array)
             flatDimensions.forEach((dimension, idx) => {
                 renderDimensionSelect(dimension, idx, container);
             });
@@ -440,7 +644,7 @@
 
             const label = document.createElement('label');
             label.htmlFor = `dim-${level}`;
-            label.innerHTML = `<i class="fas fa-layer-group" style="color: var(--primary);"></i> ${dimension.name}${dimension.required ? ' <span style="color: var(--error);">*</span>' : ''}`;
+            label.innerHTML = `<i class="fas fa-layer-group"></i> ${dimension.name}${dimension.required ? '<span class="required">*</span>' : ''}`;
 
             const select = document.createElement('select');
             select.id = `dim-${level}`;
@@ -453,7 +657,6 @@
             defaultOption.textContent = `Select ${dimension.name.toLowerCase()}...`;
             select.appendChild(defaultOption);
 
-            // Get available values for this level
             const values = getAvailableValues(level, dimension.key);
             values.forEach(value => {
                 const option = document.createElement('option');
@@ -469,26 +672,19 @@
 
         function getAvailableValues(level, dimensionKey) {
             if (level === 0) {
-                // Root level - get all instances of the first dimension
                 return config.configuration
                     .filter(inst => inst.dimension === dimensionKey)
                     .map(inst => ({ key: inst.key, name: inst.name || inst.key }));
             }
 
-            // Get parent selection
             const parentLevel = level - 1;
             const parentSelect = document.getElementById(`dim-${parentLevel}`);
             const parentValue = parentSelect.value;
 
-            if (!parentValue) {
-                return [];
-            }
+            if (!parentValue) return [];
 
-            // Find the parent instance and get its children
             const parent = findInstance(config.configuration, parentLevel, parentValue);
-            if (!parent || !parent.children) {
-                return [];
-            }
+            if (!parent || !parent.children) return [];
 
             return parent.children
                 .filter(child => child.dimension === dimensionKey)
@@ -497,9 +693,7 @@
 
         function findInstance(instances, level, value, currentLevel = 0) {
             for (let inst of instances) {
-                if (currentLevel === level && inst.key === value) {
-                    return inst;
-                }
+                if (currentLevel === level && inst.key === value) return inst;
                 if (currentLevel < level && inst.children) {
                     const result = findInstance(inst.children, level, value, currentLevel + 1);
                     if (result) return result;
@@ -509,24 +703,20 @@
         }
 
         function onDimensionChange(changedLevel, dimension) {
-            // Update selected path
             selectedPath[dimension.key] = document.getElementById(`dim-${changedLevel}`).value;
 
-            // Clear selections for levels below this one
-            for (let i = changedLevel + 1; i < config.dimensions.length; i++) {
+            for (let i = changedLevel + 1; i < flatDimensions.length; i++) {
                 const childSelect = document.getElementById(`dim-${i}`);
                 if (childSelect) {
                     childSelect.value = '';
-                    delete selectedPath[config.dimensions[i].key];
+                    delete selectedPath[flatDimensions[i].key];
                 }
             }
 
-            // Update all dimension selects below this one
-            for (let i = changedLevel + 1; i < config.dimensions.length; i++) {
+            for (let i = changedLevel + 1; i < flatDimensions.length; i++) {
                 updateDimensionSelect(i);
             }
 
-            // Update dimension info badge
             updateDimensionInfo();
         }
 
@@ -535,33 +725,20 @@
             if (!select) return;
 
             const dimensionKey = select.dataset.dimensionKey;
-            const currentValue = select.value;
-
-            // Get available values
             const values = getAvailableValues(level, dimensionKey);
 
-            // Update options
             select.innerHTML = '';
             const defaultOption = document.createElement('option');
             defaultOption.value = '';
-            defaultOption.textContent = `Select ${config.dimensions[level].name.toLowerCase()}...`;
+            defaultOption.textContent = `Select ${flatDimensions[level].name.toLowerCase()}...`;
             select.appendChild(defaultOption);
 
             values.forEach(value => {
                 const option = document.createElement('option');
                 option.value = value.key;
                 option.textContent = value.name || value.key;
-                if (value.key === currentValue) {
-                    option.selected = true;
-                }
                 select.appendChild(option);
             });
-
-            // If previously selected value no longer exists, clear it
-            if (currentValue && !values.some(v => v.key === currentValue)) {
-                select.value = '';
-                delete selectedPath[dimensionKey];
-            }
         }
 
         function updateDimensionInfo() {
@@ -596,23 +773,19 @@
             const infoDiv = document.getElementById('handlerInfo');
 
             if (idx === '') {
-                infoDiv.style.display = 'none';
+                infoDiv.classList.remove('active');
                 return;
             }
 
             const handler = config.handlers[idx];
-            infoDiv.innerHTML = `
-                <strong>${handler.type}</strong><br>
-                Pattern: <code>${handler.supportedDimensionsPattern || '.*'}</code>
-            `;
-            infoDiv.style.display = 'block';
+            infoDiv.innerHTML = `<strong>${handler.type}</strong><br>Pattern: <code>${handler.supportedDimensionsPattern || '.*'}</code>`;
+            infoDiv.classList.add('active');
         }
 
-        async function executeFlow() {
+        function executeFlow() {
             const handlerIdx = document.getElementById('handlerSelect').value;
             const params = document.getElementById('requestInput').value;
 
-            // Check if all required dimensions are selected
             const missingRequired = flatDimensions
                 .filter(dim => dim.required && !selectedPath[dim.key])
                 .map(dim => dim.name);
@@ -637,24 +810,18 @@
             log(`🚀 Executing handler: ${handler.type}\n📍 Dimension Path: ${dimensionPath}`);
 
             try {
-                // Parse parameters
                 let parsedParams = {};
                 if (params.trim()) {
                     parsedParams = JSON.parse(params);
                 }
 
-                log(`✅ Handler execution would run with:\n` +
-                    `   Handler: ${handler.type}\n` +
-                    `   Path: ${dimensionPath}\n` +
-                    `   Params: ${JSON.stringify(parsedParams, null, 2)}`);
-
+                log(`✅ Handler execution would run with:\n   Handler: ${handler.type}\n   Path: ${dimensionPath}\n   Params: ${JSON.stringify(parsedParams, null, 2)}`, 'success');
             } catch (error) {
                 log(`❌ Error: ${error.message}`, 'error');
             }
         }
 
         function clearForm() {
-            // Clear all dimension selects
             flatDimensions.forEach((dim, idx) => {
                 const select = document.getElementById(`dim-${idx}`);
                 if (select) select.value = '';
@@ -663,7 +830,7 @@
             document.getElementById('handlerSelect').value = '';
             document.getElementById('requestInput').value = '';
             document.getElementById('dimensionInfo').style.display = 'none';
-            document.getElementById('handlerInfo').style.display = 'none';
+            document.getElementById('handlerInfo').classList.remove('active');
         }
 
         function log(message, type = 'info') {
@@ -673,21 +840,30 @@
             }
 
             const time = new Date().toLocaleTimeString();
-            const prefix = type === 'error' ? '❌' : type === 'success' ? '✅' : 'ℹ️';
-
-            const line = document.createElement('div');
-            line.textContent = `[${time}] ${prefix} ${message}`;
-            line.style.marginBottom = '8px';
-
-            if (type === 'error') {
-                line.style.color = '#fca5a5';
-            } else if (type === 'success') {
-                line.style.color = '#86efac';
-            }
-
-            output.appendChild(line);
+            const entry = document.createElement('div');
+            entry.className = `log-entry ${type}`;
+            entry.textContent = `[${time}] ${message}`;
+            output.appendChild(entry);
             output.scrollTop = output.scrollHeight;
         }
+
+        function copyOutput() {
+            const output = document.getElementById('output');
+            navigator.clipboard.writeText(output.textContent).then(
+                () => { showStatus('Copied to clipboard!', 'success'); },
+                () => { showStatus('Failed to copy', 'error'); }
+            );
+        }
+
+        function showStatus(message, type = 'success') {
+            const statusEl = document.getElementById('status');
+            statusEl.textContent = message;
+            statusEl.className = `status ${type}`;
+            statusEl.style.display = 'flex';
+            setTimeout(() => { statusEl.style.display = 'none'; }, 3000);
+        }
+
+        loadTheme();
     </script>
 </body>
 </html>
