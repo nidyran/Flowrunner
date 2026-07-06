@@ -53,6 +53,7 @@ Standards followed across the codebase — new code must match them:
 ## API design
 
 - REST endpoints must use query parameters (`@RequestParam`) instead of path variables (`@PathVariable`) for filtering, pagination, sorting, and optional parameters. Path variables should be reserved for identifying a primary resource only.
+- Controllers should delegate logic, not contain it. Controllers handle HTTP concerns (routing, parameter binding, status codes) only; business logic, validation, and data transformation belong in services, validators, or helper classes.
 
 ## Validation conventions
 
