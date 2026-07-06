@@ -905,36 +905,10 @@
     const API_SUITES_URL      = '/flow/executor/handle';
     const API_CALL_URL        = '/flow/executor/handle-api';
     const RUN_ALL_FLOWS_URL   = '/flow/executor/run-all-flows';
-    const CONFIG_URL          = '/flow/executor/config';
+    const CONFIG_URL          = '/api/flowrunner/config';
     const DEFAULT_PANEL_WIDTH = 275;
     const MIN_WIDTH = 260;
     const MAX_WIDTH = 800;
-
-    /* Friendly display names for known application keys — fallback only.
-       Overridden at runtime by config.applications[<APP_KEY>].displayName */
-    const APPLICATION_FRIENDLY_NAMES = {
-        CSA: 'CSA',
-        STUDIO: 'Studio',
-        CUSTOMER: 'Customer',
-        BACKOFFICE: 'Back Office',
-        MIDDLEWARE: 'Middleware',
-        BACKEND_DATABASE: 'Backend Database',
-        MAILPIT: 'Mailpit',
-        KEYCLOAK: 'Keycloak',
-    };
-
-    /* Default channels per application — fallback only. Overridden at
-       runtime by config.applications[<APP_KEY>].supportedChannels */
-    const DEFAULT_CHANNELS_BY_APP = {
-        CSA: ['WEB'],
-        STUDIO: ['WEB'],
-        CUSTOMER: ['WEB', 'MOB'],
-        BACKOFFICE: ['WEB'],
-        MIDDLEWARE: ['API'],
-        BACKEND_DATABASE: ['API'],
-        MAILPIT: ['API'],
-        KEYCLOAK: ['API'],
-    };
 
     /* ══════════════════════════════════════════════════════════════
        UTILITIES
@@ -2153,10 +2127,13 @@
         }
         const envCfg = environmentConfigProperties.environments[env];
         let html = '<div class="env-config-header"><i class="fas fa-cog"></i> Environment Configuration</div>';
-        const globals = [];
-        if (environmentConfigProperties.authenticatorHost) globals.push({ label: 'Authenticator Host', value: environmentConfigProperties.authenticatorHost, path: 'authenticatorHost' });
-        if (envCfg.mailpitHost)       globals.push({ label: 'Mailpit Host',        value: envCfg.mailpitHost,       path: `environments.${env}.mailpitHost` });
-        if (envCfg.mailpitAuthHeader) globals.push({ label: 'Mailpit Auth Header', value: envCfg.mailpitAuthHeader, path: `environments.${env}.mailpitAuthHeader` });
+        const globals = Object.entries(envCfg.__meta || {})
+            .filter(([, v]) => v != null && v !== '' && typeof v !== 'object')
+            .map(([k, v]) => ({
+                label: k.replace(/([A-Z])/g, ' $1').replace(/^./, s => s.toUpperCase()).trim(),
+                value: v,
+                path: `environments.${env}.__meta.${k}`,
+            }));
         if (globals.length) {
             html += '<div class="config-section"><div class="config-section-title"><i class="fas fa-globe"></i> Global Settings</div><div class="config-grid">';
             globals.forEach(g => { html += `<div class="config-property"><span class="property-label">${escapeHtml(g.label)}</span><span class="property-value editable-config" data-path="${escapeHtml(g.path)}" title="Click to edit">${escapeHtml(g.value)}</span></div>`; });
@@ -2616,64 +2593,79 @@
 
     /* ══════════════════════════════════════════════════════════════
        CONFIG LOADING
-       /flow/executor/config now returns:
+       /api/flowrunner/config returns:
        {
-         "environments": { envName: EnvironmentConfig, ... },
-         "handlers": [ { type, displayName, module, supportedApplications, supportedParameters }, ... ],
-         "applications": { APP_KEY: { key, displayName, supportedChannels }, ... }
+         "dimensions":    [ FlowDimension tree: { key, name, defaultValue, required, children } ],
+         "configuration": [ FlowDimensionInstance tree: { dimension, key, name, metadata, children } ],
+         "handlers":      [ { type, name, friendlyName, module, supportedParameters, supportedDimensionsPattern } ]
        }
-       where EnvironmentConfig = { applications: { APP_KEY: {...} }, enabled: boolean }
+       The configuration tree is walked generically by depth to match the UI's
+       environment (depth 0) -> application (depth 1) -> channel (depth 2) model.
     ══════════════════════════════════════════════════════════════ */
-    function buildDerivedData(data) {
-        const rawEnvironments = data.environments || {};
-        const rawApplications = data.applications || {};
-        const rawHandlers     = Array.isArray(data.handlers) ? data.handlers : [];
 
-        environments = Object.keys(rawEnvironments).filter(envName => rawEnvironments[envName]?.enabled !== false);
+    // Converts a Java regex built with java.util.regex.Pattern.quote(...) (\Q...\E
+    // literal-quoting) into an equivalent JS RegExp source string.
+    function javaPatternToJsRegexSource(pattern) {
+        return pattern.replace(/\\Q([\s\S]*?)\\E/g, (_, literal) => literal.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+    }
+
+    // Collects every dot-joined instance-key path through the configuration tree,
+    // at every depth (e.g. "dev", "dev.customer", "dev.customer.WEB").
+    function collectInstancePaths(nodes, prefix, paths) {
+        for (const node of nodes) {
+            const path = prefix ? `${prefix}.${node.key}` : node.key;
+            paths.push(path);
+            if (node.children && node.children.length) collectInstancePaths(node.children, path, paths);
+        }
+    }
+
+    function buildDerivedData(data) {
+        const configuration = Array.isArray(data.configuration) ? data.configuration : [];
+        const rawHandlers   = Array.isArray(data.handlers) ? data.handlers : [];
+
+        environments = configuration.map(env => env.key);
 
         environmentConfigProperties = { environments: {} };
         envToAppToChannels = {};
         applications = {};
 
-        // Seed applications + channel info from the global "applications" catalogue
-        for (const [appKey, appMeta] of Object.entries(rawApplications)) {
-            applications[appKey] = appMeta?.displayName || APPLICATION_FRIENDLY_NAMES[appKey] || humanizeSelectOption(appKey);
-            DEFAULT_CHANNELS_BY_APP[appKey] = (appMeta?.supportedChannels && appMeta.supportedChannels.length)
-                ? appMeta.supportedChannels
-                : (DEFAULT_CHANNELS_BY_APP[appKey] || ['DEFAULT']);
-        }
+        for (const env of configuration) {
+            const envCfg = { __meta: env.metadata || {} };
+            environmentConfigProperties.environments[env.key] = envCfg;
+            envToAppToChannels[env.key] = {};
 
-        for (const envName of environments) {
-            const envCfg = rawEnvironments[envName] || {};
-            const apps = envCfg.applications || {};
-
-            environmentConfigProperties.environments[envName] = {};
-            envToAppToChannels[envName] = {};
-
-            for (const [appKey, appCfg] of Object.entries(apps)) {
-                // Friendly application display name (fallback if not in catalogue)
-                if (!applications[appKey]) {
-                    applications[appKey] = APPLICATION_FRIENDLY_NAMES[appKey] || humanizeSelectOption(appKey);
+            for (const app of (env.children || [])) {
+                if (!applications[app.key]) {
+                    applications[app.key] = app.name || humanizeSelectOption(app.key);
                 }
-
-                // Store full app config for the env-config card (lower-cased key, as the
-                // rendering code expects environments.<env>.<appKeyLower>)
-                environmentConfigProperties.environments[envName][appKey.toLowerCase()] = appCfg;
-
-                // Channels supported by this application
-                envToAppToChannels[envName][appKey] = DEFAULT_CHANNELS_BY_APP[appKey] || ['DEFAULT'];
+                envCfg[app.key.toLowerCase()] = app.metadata || {};
+                envToAppToChannels[env.key][app.key] = (app.children || []).map(ch => ch.key);
             }
         }
 
-        // Flows derived from the real handler catalogue
-        flows = rawHandlers.map(h => ({
-            type: h.type,
-            friendlyName: h.displayName || humanizeSelectOption(h.type || ''),
-            module: h.module || 'Other',
-            supportedApplications: (h.supportedApplications && h.supportedApplications.length) ? h.supportedApplications : null,
-            supportedParameters: h.supportedParameters || {},
-            involvedApplications: (h.involvedApplications && h.involvedApplications.length) ? h.involvedApplications : null,
-        }));
+        const instancePaths = [];
+        collectInstancePaths(configuration, '', instancePaths);
+
+        // Flows derived from the real handler catalogue; the applications a handler
+        // supports are derived by matching its dimensions pattern against every real
+        // instance path and collecting the application-level (depth 1) segment.
+        flows = rawHandlers.map(h => {
+            const regex = new RegExp(`^${javaPatternToJsRegexSource(h.supportedDimensionsPattern || '.*')}$`);
+            const supportedApplications = [...new Set(
+                instancePaths
+                    .filter(path => regex.test(path))
+                    .map(path => path.split('.')[1])
+                    .filter(Boolean)
+            )];
+            return {
+                type: h.type,
+                friendlyName: h.friendlyName || humanizeSelectOption(h.type || ''),
+                module: h.module || 'Other',
+                supportedApplications,
+                supportedParameters: h.supportedParameters || {},
+                involvedApplications: supportedApplications,
+            };
+        });
     }
 
     async function loadConfig() {

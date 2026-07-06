@@ -102,22 +102,13 @@ public class FlowrunnerApiController {
                     Map<String, Object> handlerInfo = new LinkedHashMap<>();
                     handlerInfo.put("type", handler.getClass().getSimpleName());
                     handlerInfo.put("name", handler.getClass().getName());
-                    String pattern = extractDimensionPattern(handler);
-                    handlerInfo.put("supportedDimensionsPattern", pattern);
+                    handlerInfo.put("friendlyName", handler.friendlyName());
+                    handlerInfo.put("module", handler.module());
+                    handlerInfo.put("supportedParameters", handler.getSupportedParameters());
+                    handlerInfo.put("supportedDimensionsPattern", handler.supportedDimensionsPattern());
                     return handlerInfo;
                 })
                 .collect(Collectors.toList());
-    }
-
-    private String extractDimensionPattern(FlowRunnerHandler handler) {
-        try {
-            java.lang.reflect.Method method = handler.getClass()
-                    .getMethod("supportedDimensionsPattern");
-            Object result = method.invoke(handler);
-            return result != null ? result.toString() : ".*";
-        } catch (Exception e) {
-            return ".*";
-        }
     }
 
     private Map<String, Object> dimensionToMap(FlowDimension dimension) {
