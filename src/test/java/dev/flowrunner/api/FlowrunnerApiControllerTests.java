@@ -25,6 +25,8 @@ package dev.flowrunner.api;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import dev.flowrunner.handlers.FlowRunnerHandler;
+import dev.flowrunner.properties.FlowDimension;
+import dev.flowrunner.properties.FlowDimensionInstance;
 import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -40,10 +42,8 @@ import java.util.Map;
  * Covers {@link FlowrunnerApiController} against the {@code flow-properties-test.yaml}
  * fixture (environment -> application -> channel dimensions):
  * <ul>
- *   <li>{@code /config} returns the dimensions schema, configuration instances and
- *       registered handlers together</li>
- *   <li>{@code /dimensions} returns the schema tree with nested children</li>
- *   <li>{@code /configuration} returns the instance tree with metadata and nested children</li>
+ *   <li>{@code /config} returns the bound {@link dev.flowrunner.properties.FlowProperties}
+ *       record as-is, with its dimensions schema and configuration instance tree</li>
  *   <li>{@code /handlers} returns type, friendly name, module, supported parameters and
  *       the real {@code supportedDimensionsPattern()} for every registered
  *       {@link FlowRunnerHandler} bean</li>
@@ -87,49 +87,34 @@ class FlowrunnerApiControllerTests {
     private final FlowrunnerApiController controller;
 
     @Test
-    void configReturnsDimensionsConfigurationAndHandlersTogether() {
-        Map<String, Object> body = controller.getConfiguration().getBody();
-
-        assertThat(body).containsKeys("dimensions", "configuration", "handlers");
-        assertThat((List<?>) body.get("dimensions")).isNotEmpty();
-        assertThat((List<?>) body.get("configuration")).isNotEmpty();
-        assertThat((List<?>) body.get("handlers")).isNotEmpty();
-    }
-
-    @Test
-    @SuppressWarnings("unchecked")
-    void dimensionsReturnsSchemaTreeWithNestedChildren() {
-        List<Map<String, Object>> dimensions = controller.getDimensions().getBody();
+    void configReturnsDimensionsSchemaWithNestedChildren() {
+        List<FlowDimension> dimensions = controller.getConfiguration().getBody().dimensions();
 
         assertThat(dimensions).hasSize(1);
-        Map<String, Object> environment = dimensions.getFirst();
-        assertThat(environment.get("key")).isEqualTo("environment");
-        assertThat(environment.get("defaultValue")).isEqualTo("local");
-        assertThat(environment.get("required")).isEqualTo(true);
+        FlowDimension environment = dimensions.getFirst();
+        assertThat(environment.key()).isEqualTo("environment");
+        assertThat(environment.defaultValue()).isEqualTo("local");
+        assertThat(environment.required()).isTrue();
 
-        List<Map<String, Object>> applicationChildren = (List<Map<String, Object>>) environment.get("children");
-        assertThat(applicationChildren).hasSize(1);
-        assertThat(applicationChildren.getFirst().get("key")).isEqualTo("application");
+        assertThat(environment.children()).hasSize(1);
+        assertThat(environment.children().getFirst().key()).isEqualTo("application");
     }
 
     @Test
-    @SuppressWarnings("unchecked")
-    void configurationReturnsInstanceTreeWithMetadataAndNestedChildren() {
-        List<Map<String, Object>> configuration = controller.getConfigurationInstances().getBody();
+    void configReturnsConfigurationInstanceTreeWithMetadataAndNestedChildren() {
+        List<FlowDimensionInstance> configuration = controller.getConfiguration().getBody().configuration();
 
         assertThat(configuration).hasSize(1);
-        Map<String, Object> dev = configuration.getFirst();
-        assertThat(dev.get("dimension")).isEqualTo("environment");
-        assertThat(dev.get("key")).isEqualTo("dev");
-        assertThat((Map<String, Object>) dev.get("metadata")).containsEntry("host", "localhost");
+        FlowDimensionInstance dev = configuration.getFirst();
+        assertThat(dev.getDimension()).isEqualTo("environment");
+        assertThat(dev.getKey()).isEqualTo("dev");
+        assertThat(dev.getMetadata()).containsEntry("host", "localhost");
 
-        List<Map<String, Object>> applications = (List<Map<String, Object>>) dev.get("children");
-        assertThat(applications).hasSize(1);
-        Map<String, Object> customer = applications.getFirst();
-        assertThat(customer.get("key")).isEqualTo("customer");
+        assertThat(dev.getChildren()).hasSize(1);
+        FlowDimensionInstance customer = dev.getChildren().getFirst();
+        assertThat(customer.getKey()).isEqualTo("customer");
 
-        List<Map<String, Object>> channels = (List<Map<String, Object>>) customer.get("children");
-        assertThat(channels).extracting(c -> c.get("key")).containsExactly("WEB");
+        assertThat(customer.getChildren()).extracting(FlowDimensionInstance::getKey).containsExactly("WEB");
     }
 
     @Test

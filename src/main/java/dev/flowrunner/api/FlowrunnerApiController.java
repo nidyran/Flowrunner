@@ -45,49 +45,8 @@ public class FlowrunnerApiController {
     private final ApplicationContext applicationContext;
 
     @GetMapping("/config")
-    public ResponseEntity<Map<String, Object>> getConfiguration() {
-        Map<String, Object> config = new LinkedHashMap<>();
-
-        // Dimensions schema
-        List<Map<String, Object>> dimensions = flowProperties.dimensions() != null
-                ? flowProperties.dimensions().stream()
-                .map(this::dimensionToMap)
-                .collect(Collectors.toList())
-                : List.of();
-        config.put("dimensions", dimensions);
-
-        // Configuration instances
-        List<Map<String, Object>> configuration = flowProperties.configuration() != null
-                ? flowProperties.configuration().stream()
-                .map(this::instanceToMap)
-                .collect(Collectors.toList())
-                : List.of();
-        config.put("configuration", configuration);
-
-        // Available handlers
-        config.put("handlers", getAvailableHandlers());
-
-        return ResponseEntity.ok(config);
-    }
-
-    @GetMapping("/dimensions")
-    public ResponseEntity<List<Map<String, Object>>> getDimensions() {
-        List<Map<String, Object>> dimensions = flowProperties.dimensions() != null
-                ? flowProperties.dimensions().stream()
-                .map(this::dimensionToMap)
-                .collect(Collectors.toList())
-                : List.of();
-        return ResponseEntity.ok(dimensions);
-    }
-
-    @GetMapping("/configuration")
-    public ResponseEntity<List<Map<String, Object>>> getConfigurationInstances() {
-        List<Map<String, Object>> configuration = flowProperties.configuration() != null
-                ? flowProperties.configuration().stream()
-                .map(this::instanceToMap)
-                .collect(Collectors.toList())
-                : List.of();
-        return ResponseEntity.ok(configuration);
+    public ResponseEntity<FlowProperties> getConfiguration() {
+        return ResponseEntity.ok(flowProperties);
     }
 
     @GetMapping("/handlers")
@@ -108,36 +67,6 @@ public class FlowrunnerApiController {
                     handlerInfo.put("supportedDimensionsPattern", handler.supportedDimensionsPattern());
                     return handlerInfo;
                 })
-                .collect(Collectors.toList());
-    }
-
-    private Map<String, Object> dimensionToMap(FlowDimension dimension) {
-        Map<String, Object> map = new LinkedHashMap<>();
-        map.put("key", dimension.key());
-        map.put("name", dimension.name());
-        map.put("defaultValue", dimension.defaultValue());
-        map.put("required", dimension.required());
-        if (dimension.children() != null && !dimension.children().isEmpty()) {
-            map.put("children", dimension.children().stream()
-                    .map(this::dimensionToMap)
-                    .collect(Collectors.toList()));
-        }
-        return map;
-    }
-
-    private Map<String, Object> instanceToMap(FlowDimensionInstance instance) {
-        Map<String, Object> map = new LinkedHashMap<>();
-        map.put("dimension", instance.getDimension());
-        map.put("key", instance.getKey());
-        map.put("name", instance.getName());
-        if (instance.getMetadata() != null && !instance.getMetadata().isEmpty()) {
-            map.put("metadata", instance.getMetadata());
-        }
-        if (instance.getChildren() != null && !instance.getChildren().isEmpty()) {
-            map.put("children", instance.getChildren().stream()
-                    .map(this::instanceToMap)
-                    .collect(Collectors.toList()));
-        }
-        return map;
+                .toList();
     }
 }

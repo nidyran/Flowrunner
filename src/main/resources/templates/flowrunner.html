@@ -858,6 +858,7 @@
     const API_CALL_URL        = '/flow/executor/handle-api';
     const RUN_ALL_FLOWS_URL   = '/flow/executor/run-all-flows';
     const CONFIG_URL          = '/api/flowrunner/config';
+    const HANDLERS_URL        = '/api/flowrunner/handlers';
     const DEFAULT_PANEL_WIDTH = 275;
     const MIN_WIDTH = 260;
     const MAX_WIDTH = 800;
@@ -2466,12 +2467,14 @@
 
     /* ══════════════════════════════════════════════════════════════
        CONFIG LOADING
-       /api/flowrunner/config returns:
+       /api/flowrunner/config returns the raw FlowProperties as bound from YAML,
+       unprocessed:
        {
          "dimensions":    [ FlowDimension tree: { key, name, defaultValue, required, children } ],
-         "configuration": [ FlowDimensionInstance tree: { dimension, key, name, metadata, children } ],
-         "handlers":      [ { type, name, friendlyName, module, supportedParameters, supportedDimensionsPattern } ]
+         "configuration": [ FlowDimensionInstance tree: { dimension, key, name, metadata, children } ]
        }
+       /api/flowrunner/handlers is a separate endpoint:
+       [ { type, name, friendlyName, module, supportedParameters, supportedDimensionsPattern } ]
        Both trees can be any depth (including empty) — dimensionLevels is derived
        from the schema's first-child chain, not hardcoded names.
     ══════════════════════════════════════════════════════════════ */
@@ -2503,17 +2506,16 @@
         return levels;
     }
 
-    function buildDerivedData(data) {
-        const schema      = Array.isArray(data.dimensions) ? data.dimensions : [];
-        configRoots       = Array.isArray(data.configuration) ? data.configuration : [];
-        const rawHandlers = Array.isArray(data.handlers) ? data.handlers : [];
+    function buildDerivedData(data, rawHandlers) {
+        const schema = Array.isArray(data.dimensions) ? data.dimensions : [];
+        configRoots  = Array.isArray(data.configuration) ? data.configuration : [];
 
         dimensionLevels = collectDimensionLevels(schema);
 
         instancePaths = [];
         collectInstancePaths(configRoots, '', instancePaths);
 
-        flows = rawHandlers.map(h => ({
+        flows = (Array.isArray(rawHandlers) ? rawHandlers : []).map(h => ({
             type: h.type,
             friendlyName: h.friendlyName || humanizeSelectOption(h.type || ''),
             module: h.module || 'Other',
@@ -2524,10 +2526,12 @@
 
     async function loadConfig() {
         try {
-            const res = await fetch(CONFIG_URL);
-            if (!res.ok) throw new Error(`HTTP ${res.status}`);
-            const data = await res.json();
-            buildDerivedData(data);
+            const [configRes, handlersRes] = await Promise.all([fetch(CONFIG_URL), fetch(HANDLERS_URL)]);
+            if (!configRes.ok) throw new Error(`HTTP ${configRes.status}`);
+            if (!handlersRes.ok) throw new Error(`HTTP ${handlersRes.status}`);
+            const data = await configRes.json();
+            const rawHandlers = await handlersRes.json();
+            buildDerivedData(data, rawHandlers);
         } catch (e) {
             showToast('Failed to load configuration: ' + e.message, 'error');
             dimensionLevels = [];
