@@ -39,6 +39,7 @@ Standards followed across the codebase — new code must match them:
 - Nullness is annotated with jspecify (`@NonNull`) where the contract matters.
 - String composition uses `"...".formatted(...)`; shared constants (e.g. `Strings.EMPTY`) over literals.
 - Validation-style operations collect all errors into a list and fail once at the end, rather than failing fast on the first.
+- Always prioritize Lombok annotations whenever possible — use `@RequiredArgsConstructor`, `@AllArgsConstructor`, `@NoArgsConstructor` (even with visibility selectors like `@NoArgsConstructor(access = AccessLevel.PRIVATE)`) rather than hand-written constructors.
 
 ## Code style
 
@@ -46,6 +47,12 @@ Standards followed across the codebase — new code must match them:
 - `@ConfigurationProperties` bind structurally to typed Java objects only — no `Map<String, Object>` intermediates, no `@ConstructorBinding` conversion constructors, no custom converters. If the config shape can't bind directly, change the YAML format to mirror the object model.
 - Mutable config model classes use Lombok `@Getter`/`@Setter` with field initializers for nested collections; immutable ones are records.
 - Every source file carries the MIT license header (OpenRewrite enforces it).
+- Stream operations: use `.toList()` instead of `.collect(Collectors.toList())` — the method reference is cleaner and more readable.
+- Control flow: use explicit `if-else` statements instead of inline ternary operators (`? :`); avoid nested ternaries entirely. Ternaries reduce readability and maintainability.
+
+## API design
+
+- REST endpoints must use query parameters (`@RequestParam`) instead of path variables (`@PathVariable`) for filtering, pagination, sorting, and optional parameters. Path variables should be reserved for identifying a primary resource only.
 
 ## Validation conventions
 
