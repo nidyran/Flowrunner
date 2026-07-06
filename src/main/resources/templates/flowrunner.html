@@ -1961,17 +1961,13 @@
         appSel.innerHTML = '<option value="">Select an application…</option>';
         appSel.disabled = true;
         if (env && envToAppToChannels[env]) {
-            // Filter: only show apps that have at least one flow
             Object.keys(envToAppToChannels[env]).forEach(app => {
-                const hasFlows = flows.some(f => !f.supportedApplications || f.supportedApplications.includes(app));
-                if (!hasFlows) return; // Skip apps without any flows
-
                 const o = document.createElement('option');
                 o.value = app; o.textContent = applications[app] || humanizeSelectOption(app);
                 appSel.appendChild(o);
             });
             appSel.disabled = false;
-            if (prev && envToAppToChannels[env][prev] && flows.some(f => !f.supportedApplications || f.supportedApplications.includes(prev))) appSel.value = prev;
+            if (prev && envToAppToChannels[env][prev]) appSel.value = prev;
             else if (appSel.options.length > 1) { appSel.value = appSel.options[1].value; onApplicationChanged(); updateChannels(); return; }
         }
         updateChannels();
@@ -2091,10 +2087,7 @@
             appSel.innerHTML = '<option value="">Select application…</option>'; chanSel.innerHTML = '<option value="">Select channel…</option>';
             appSel.disabled = !env; chanSel.disabled = true;
             if (env && envToAppToChannels[env]) {
-                // Filter: only show apps that have at least one flow
                 Object.keys(envToAppToChannels[env]).forEach(app => {
-                    const hasFlows = flows.some(f => !f.supportedApplications || f.supportedApplications.includes(app));
-                    if (!hasFlows) return;
                     const o = document.createElement('option'); o.value = app; o.textContent = applications[app] || humanizeSelectOption(app); appSel.appendChild(o);
                 });
                 // Auto-select first app
@@ -2469,13 +2462,10 @@
         apiEnvSel.value = env || ''; updateEnvConfig('api', env);
         apiAppSel.innerHTML = '<option value="">Select application…</option>'; apiAppSel.disabled = !env;
         if (env && envToAppToChannels[env]) {
-            // Filter: only show apps that have at least one flow
             Object.keys(envToAppToChannels[env]).forEach(a => {
-                const hasFlows = flows.some(f => !f.supportedApplications || f.supportedApplications.includes(a));
-                if (!hasFlows) return;
                 const o = document.createElement('option'); o.value = a; o.textContent = applications[a] || humanizeSelectOption(a); apiAppSel.appendChild(o);
             });
-            if (app && envToAppToChannels[env][app] && flows.some(f => !f.supportedApplications || f.supportedApplications.includes(app))) apiAppSel.value = app;
+            if (app && envToAppToChannels[env][app]) apiAppSel.value = app;
             else if (apiAppSel.options.length > 1) apiAppSel.value = apiAppSel.options[1].value;
         }
         apiChanSel.innerHTML = '<option value="">Select channel…</option>';
@@ -2749,8 +2739,6 @@
             appSel.innerHTML = '<option value="">Select application…</option>'; appSel.disabled = !this.value;
             if (this.value && envToAppToChannels[this.value]) {
                 Object.keys(envToAppToChannels[this.value]).forEach(app => {
-                    const hasFlows = flows.some(f => !f.supportedApplications || f.supportedApplications.includes(app));
-                    if (!hasFlows) return;
                     const o = document.createElement('option'); o.value = app; o.textContent = applications[app] || humanizeSelectOption(app); appSel.appendChild(o);
                 });
                 appSel.disabled = appSel.options.length <= 1;
