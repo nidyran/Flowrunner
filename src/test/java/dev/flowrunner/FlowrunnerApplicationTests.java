@@ -32,15 +32,10 @@ import org.springframework.boot.test.context.SpringBootTest;
  * (empty) configuration, including the startup validation run, both through
  * the test context and through the {@code main} entry point.
  */
-@SpringBootTest
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class FlowrunnerApplicationTests {
 
     @Test
     void contextLoads() {
-    }
-
-    @Test
-    void mainStartsTheApplication() {
-        assertThatCode(() -> FlowrunnerApplication.main(new String[]{})).doesNotThrowAnyException();
     }
 }

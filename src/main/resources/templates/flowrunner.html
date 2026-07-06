@@ -307,13 +307,8 @@
         <div class="left-panel panel">
             <div class="section">
                 <div class="section-title">Configuration</div>
-                <div class="form-group">
-                    <label for="dimensionSelect"><i class="fas fa-layer-group" style="color: var(--primary);"></i> Select Dimension Path</label>
-                    <select id="dimensionSelect" onchange="onDimensionPathChange()">
-                        <option value="">Loading configuration...</option>
-                    </select>
-                    <div class="info-badge" id="dimensionInfo" style="display: none;"></div>
-                </div>
+                <div id="dimensionSelects"></div>
+                <div class="info-badge" id="dimensionInfo" style="display: none; margin-top: 8px;"></div>
             </div>
 
             <div class="section">
@@ -368,7 +363,7 @@
             handlers: []
         };
 
-        let dimensionPaths = [];
+        let selectedPath = {};
 
         document.addEventListener('DOMContentLoaded', () => {
             loadConfiguration();
@@ -392,36 +387,177 @@
                 const response = await fetch(API_CONFIG);
                 config = await response.json();
 
-                // Build dimension paths
-                buildDimensionPaths(config.configuration, []);
-
-                // Populate dimension select
-                const select = document.getElementById('dimensionSelect');
-                select.innerHTML = '<option value="">Select a dimension path...</option>';
-                dimensionPaths.forEach((path, idx) => {
-                    const option = document.createElement('option');
-                    option.value = idx;
-                    option.textContent = path.join(' → ');
-                    select.appendChild(option);
-                });
+                // Create cascading dimension selects
+                renderDimensionSelects();
 
                 // Populate handlers
                 populateHandlers();
 
-                log('✅ Configuration loaded successfully\n' + JSON.stringify(config, null, 2));
+                log('✅ Configuration loaded successfully');
             } catch (error) {
                 log('❌ Error loading configuration: ' + error.message, 'error');
             }
         }
 
-        function buildDimensionPaths(instances, currentPath) {
-            instances.forEach(instance => {
-                const path = [...currentPath, instance.key];
-                dimensionPaths.push(path);
-                if (instance.children && instance.children.length > 0) {
-                    buildDimensionPaths(instance.children, path);
-                }
+        function renderDimensionSelects() {
+            const container = document.getElementById('dimensionSelects');
+            container.innerHTML = '';
+            selectedPath = {};
+
+            if (!config.dimensions || config.dimensions.length === 0) {
+                container.innerHTML = '<p style="color: var(--text-muted); font-size: 13px;">No dimensions configured</p>';
+                return;
+            }
+
+            // Create selects for each dimension level
+            config.dimensions.forEach((dimension, idx) => {
+                renderDimensionSelect(dimension, idx, container);
             });
+        }
+
+        function renderDimensionSelect(dimension, level, container) {
+            const formGroup = document.createElement('div');
+            formGroup.className = 'form-group';
+
+            const label = document.createElement('label');
+            label.htmlFor = `dim-${level}`;
+            label.innerHTML = `<i class="fas fa-layer-group" style="color: var(--primary);"></i> ${dimension.name}${dimension.required ? ' <span style="color: var(--error);">*</span>' : ''}`;
+
+            const select = document.createElement('select');
+            select.id = `dim-${level}`;
+            select.dataset.level = level;
+            select.dataset.dimensionKey = dimension.key;
+            select.onchange = () => onDimensionChange(level, dimension);
+
+            const defaultOption = document.createElement('option');
+            defaultOption.value = '';
+            defaultOption.textContent = `Select ${dimension.name.toLowerCase()}...`;
+            select.appendChild(defaultOption);
+
+            // Get available values for this level
+            const values = getAvailableValues(level, dimension.key);
+            values.forEach(value => {
+                const option = document.createElement('option');
+                option.value = value.key;
+                option.textContent = value.name || value.key;
+                select.appendChild(option);
+            });
+
+            formGroup.appendChild(label);
+            formGroup.appendChild(select);
+            container.appendChild(formGroup);
+        }
+
+        function getAvailableValues(level, dimensionKey) {
+            if (level === 0) {
+                // Root level - get all instances of the first dimension
+                return config.configuration
+                    .filter(inst => inst.dimension === dimensionKey)
+                    .map(inst => ({ key: inst.key, name: inst.name || inst.key }));
+            }
+
+            // Get parent selection
+            const parentLevel = level - 1;
+            const parentSelect = document.getElementById(`dim-${parentLevel}`);
+            const parentValue = parentSelect.value;
+
+            if (!parentValue) {
+                return [];
+            }
+
+            // Find the parent instance and get its children
+            const parent = findInstance(config.configuration, parentLevel, parentValue);
+            if (!parent || !parent.children) {
+                return [];
+            }
+
+            return parent.children
+                .filter(child => child.dimension === dimensionKey)
+                .map(child => ({ key: child.key, name: child.name || child.key }));
+        }
+
+        function findInstance(instances, level, value, currentLevel = 0) {
+            for (let inst of instances) {
+                if (currentLevel === level && inst.key === value) {
+                    return inst;
+                }
+                if (currentLevel < level && inst.children) {
+                    const result = findInstance(inst.children, level, value, currentLevel + 1);
+                    if (result) return result;
+                }
+            }
+            return null;
+        }
+
+        function onDimensionChange(changedLevel, dimension) {
+            // Update selected path
+            selectedPath[dimension.key] = document.getElementById(`dim-${changedLevel}`).value;
+
+            // Clear selections for levels below this one
+            for (let i = changedLevel + 1; i < config.dimensions.length; i++) {
+                const childSelect = document.getElementById(`dim-${i}`);
+                if (childSelect) {
+                    childSelect.value = '';
+                    delete selectedPath[config.dimensions[i].key];
+                }
+            }
+
+            // Update all dimension selects below this one
+            for (let i = changedLevel + 1; i < config.dimensions.length; i++) {
+                updateDimensionSelect(i);
+            }
+
+            // Update dimension info badge
+            updateDimensionInfo();
+        }
+
+        function updateDimensionSelect(level) {
+            const select = document.getElementById(`dim-${level}`);
+            if (!select) return;
+
+            const dimensionKey = select.dataset.dimensionKey;
+            const currentValue = select.value;
+
+            // Get available values
+            const values = getAvailableValues(level, dimensionKey);
+
+            // Update options
+            select.innerHTML = '';
+            const defaultOption = document.createElement('option');
+            defaultOption.value = '';
+            defaultOption.textContent = `Select ${config.dimensions[level].name.toLowerCase()}...`;
+            select.appendChild(defaultOption);
+
+            values.forEach(value => {
+                const option = document.createElement('option');
+                option.value = value.key;
+                option.textContent = value.name || value.key;
+                if (value.key === currentValue) {
+                    option.selected = true;
+                }
+                select.appendChild(option);
+            });
+
+            // If previously selected value no longer exists, clear it
+            if (currentValue && !values.some(v => v.key === currentValue)) {
+                select.value = '';
+                delete selectedPath[dimensionKey];
+            }
+        }
+
+        function updateDimensionInfo() {
+            const infoBadge = document.getElementById('dimensionInfo');
+            const path = config.dimensions
+                .map(dim => selectedPath[dim.key])
+                .filter(val => val);
+
+            if (path.length === 0) {
+                infoBadge.style.display = 'none';
+                return;
+            }
+
+            infoBadge.textContent = '📍 Path: ' + path.join(' › ');
+            infoBadge.style.display = 'block';
         }
 
         function populateHandlers() {
@@ -433,21 +569,6 @@
                 option.textContent = handler.type;
                 select.appendChild(option);
             });
-        }
-
-        function onDimensionPathChange() {
-            const select = document.getElementById('dimensionSelect');
-            const idx = select.value;
-            const infoBadge = document.getElementById('dimensionInfo');
-
-            if (idx === '') {
-                infoBadge.style.display = 'none';
-                return;
-            }
-
-            const path = dimensionPaths[idx];
-            infoBadge.textContent = '📍 Path: ' + path.join(' › ');
-            infoBadge.style.display = 'block';
         }
 
         function onHandlerSelect() {
@@ -469,12 +590,16 @@
         }
 
         async function executeFlow() {
-            const dimensionIdx = document.getElementById('dimensionSelect').value;
             const handlerIdx = document.getElementById('handlerSelect').value;
             const params = document.getElementById('requestInput').value;
 
-            if (!dimensionIdx) {
-                log('❌ Please select a dimension path', 'error');
+            // Check if all required dimensions are selected
+            const missingRequired = config.dimensions
+                .filter(dim => dim.required && !selectedPath[dim.key])
+                .map(dim => dim.name);
+
+            if (missingRequired.length > 0) {
+                log(`❌ Please select: ${missingRequired.join(', ')}`, 'error');
                 return;
             }
 
@@ -483,7 +608,11 @@
                 return;
             }
 
-            const dimensionPath = dimensionPaths[dimensionIdx].join('.');
+            const dimensionPath = config.dimensions
+                .map(dim => selectedPath[dim.key])
+                .filter(val => val)
+                .join('.');
+
             const handler = config.handlers[handlerIdx];
 
             log(`🚀 Executing handler: ${handler.type}\n📍 Dimension Path: ${dimensionPath}`);
@@ -506,7 +635,12 @@
         }
 
         function clearForm() {
-            document.getElementById('dimensionSelect').value = '';
+            // Clear all dimension selects
+            config.dimensions.forEach((dim, idx) => {
+                const select = document.getElementById(`dim-${idx}`);
+                if (select) select.value = '';
+            });
+            selectedPath = {};
             document.getElementById('handlerSelect').value = '';
             document.getElementById('requestInput').value = '';
             document.getElementById('dimensionInfo').style.display = 'none';
