@@ -25,11 +25,12 @@ package dev.flowrunner.validation;
 import dev.flowrunner.properties.FlowDimension;
 import dev.flowrunner.properties.FlowDimensionInstance;
 import dev.flowrunner.properties.FlowProperties;
-import java.util.ArrayList;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.apache.logging.log4j.util.Strings;
 import org.springframework.stereotype.Component;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Component
 @RequiredArgsConstructor

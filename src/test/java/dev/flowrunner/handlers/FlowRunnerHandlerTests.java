@@ -25,9 +25,10 @@ package dev.flowrunner.handlers;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
+
+import java.util.Map;
 
 /**
  * Covers the {@link FlowRunnerHandler} contract and its default methods:

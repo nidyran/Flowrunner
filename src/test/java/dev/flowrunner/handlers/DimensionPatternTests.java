@@ -25,9 +25,10 @@ package dev.flowrunner.handlers;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 
-import java.util.regex.Pattern;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
+
+import java.util.regex.Pattern;
 
 /**
  * Covers the {@link DimensionPattern} builder:

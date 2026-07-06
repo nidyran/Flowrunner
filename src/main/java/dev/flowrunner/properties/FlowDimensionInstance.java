@@ -22,12 +22,13 @@
  */
 package dev.flowrunner.properties;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import lombok.Getter;
-import lombok.Setter;
 
 /**
  * A configured value of a {@link FlowDimension}, mutable so that pre- and post-load
