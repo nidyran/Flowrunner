@@ -497,15 +497,6 @@
         .steps-container::-webkit-scrollbar-track { background: #0f172a; }
         .steps-container::-webkit-scrollbar-thumb { background: #64748b; border-radius: 8px; border: 2px solid #0f172a; }
 
-        .flow-warning-badge {
-            display: flex; align-items: center; gap: 6px; margin-top: 6px;
-            padding: 6px 10px; border-radius: 5px; font-size: 12px;
-            background: rgba(245,158,11,0.12); color: #f59e0b;
-            border: 1px solid rgba(245,158,11,0.35);
-        }
-        .flow-warning-badge i { flex-shrink: 0; }
-        .flow-warning-badge strong { color: #fcd34d; }
-
         #supportedParametersSection { display: none; margin-bottom: 16px; }
 
         @media (max-width: 1024px) {
@@ -554,26 +545,12 @@
                         Configuration
                         <span class="resize-info" onclick="resetPanelWidth('flow')">↔ Reset Width</span>
                     </div>
-                    <div class="form-group">
-                        <label for="envSelect"><i class="fas fa-server"></i> Environment <span class="required">*</span></label>
-                        <select id="envSelect" required>
-                            <option value="">Select environment...</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="appSelect"><i class="fas fa-cube"></i> Application <span class="required">*</span></label>
-                        <select id="appSelect" required disabled><option value="">Select application...</option></select>
-                    </div>
-                    <div class="form-group">
-                        <label for="channelSelect"><i class="fas fa-stream"></i> Channel <span class="required">*</span></label>
-                        <select id="channelSelect" required disabled><option value="">Select channel...</option></select>
-                    </div>
+                    <div class="dimension-selects" id="flowDimensionSelects"></div>
                     <div class="form-group">
                         <label for="flowSelect"><i class="fas fa-project-diagram"></i> Flow <span class="required">*</span></label>
                         <div class="searchable-select-wrapper" id="flowSelectWrapper">
                             <select id="flowSelect" required disabled><option value="">Select flow...</option></select>
                         </div>
-                        <div id="flowWarningBadge" class="flow-warning-badge" style="display:none;"></div>
                     </div>
                     <div class="form-group">
                         <label for="requestBody"><i class="fas fa-code"></i> Request Body (JSON)</label>
@@ -653,20 +630,7 @@
                 </div>
                 <div class="section">
                     <div class="section-title">API Configuration <span class="resize-info" onclick="resetPanelWidth('api')">↔ Reset Width</span></div>
-                    <div class="form-group">
-                        <label for="apiEnvSelect"><i class="fas fa-server"></i> Environment <span class="required">*</span></label>
-                        <select id="apiEnvSelect" required>
-                            <option value="">Select environment...</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="apiAppSelect"><i class="fas fa-cube"></i> Application <span class="required">*</span></label>
-                        <select id="apiAppSelect" required disabled><option value="">Select application...</option></select>
-                    </div>
-                    <div class="form-group">
-                        <label for="apiChannelSelect"><i class="fas fa-stream"></i> Channel <span class="required">*</span></label>
-                        <select id="apiChannelSelect" required disabled><option value="">Select channel...</option></select>
-                    </div>
+                    <div class="dimension-selects" id="apiDimensionSelects"></div>
                     <div class="form-group">
                         <label for="apiMethod"><i class="fas fa-exchange-alt"></i> HTTP Method <span class="required">*</span></label>
                         <select id="apiMethod" required>
@@ -804,16 +768,7 @@
     <div class="modal">
         <div class="modal-header"><div class="modal-title"><i class="fas fa-user-cog"></i> Switch User</div><button class="modal-close" onclick="closeModal('userSwitcherModal')"><i class="fas fa-times"></i></button></div>
         <div class="modal-body">
-            <div class="form-group">
-                <label for="userSwitcherEnv"><i class="fas fa-server"></i> Environment <span class="required">*</span></label>
-                <select id="userSwitcherEnv" required>
-                    <option value="">Select environment...</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label for="userSwitcherApp"><i class="fas fa-cube"></i> Application <span class="required">*</span></label>
-                <select id="userSwitcherApp" required disabled><option value="">Select application...</option></select>
-            </div>
+            <div class="dimension-selects" id="userSwitcherDimensionSelects"></div>
             <div class="form-group">
                 <label for="userSwitcherUsername"><i class="fas fa-user"></i> Username <span class="required">*</span></label>
                 <input type="text" id="userSwitcherUsername" placeholder="Enter username" required>
@@ -889,18 +844,15 @@
 <script>
     /* ══════════════════════════════════════════════════════════════
        GLOBAL DATA
-       Loaded asynchronously from /flow/executor/config (returns
-       { "environments": { envName: EnvironmentConfig, ... } }).
-       flows / applications / envToAppToChannels are derived from
-       that response (with dummy/placeholder data filled in for any
-       details EnvironmentConfig does not provide).
+       Loaded asynchronously from /api/flowrunner/config; see buildDerivedData
+       below for how dimensionLevels/configRoots/instancePaths/flows are derived.
     ══════════════════════════════════════════════════════════════ */
     let flows = [];
-    let envToAppToChannels = {};
-    let environmentConfigProperties = { environments: {} };
-    let applications = {};
-    let environments = [];
-    const selectedEnvironmentFromQuery = new URLSearchParams(window.location.search).get('env');
+    let dimensionLevels = [];   // [{key, name}], one per depth — [] if no dimensions are configured
+    let configRoots = [];       // top-level configuration instances, as returned by the API
+    let instancePaths = [];     // every dot-joined instance path through configRoots, at every depth
+    let selections = { flow: [], api: [], userSwitcher: [] }; // per-tab arrays of chosen keys, aligned with dimensionLevels
+    const selectedDim0FromQuery = new URLSearchParams(window.location.search).get('dim0');
 
     const API_SUITES_URL      = '/flow/executor/handle';
     const API_CALL_URL        = '/flow/executor/handle-api';
@@ -1821,20 +1773,28 @@
        FLOW EXECUTOR — UI LOGIC
     ══════════════════════════════════════════════════════════════ */
     let selectedFlow          = null;
-    let previouslySelectedApp = null;
     let executionHistory      = JSON.parse(localStorage.getItem('flowExecutorHistory') || '[]');
     let currentDocumentPath   = '';
 
+    // Builds "key1=value1&key2=value2..." for the currently selected dimension path of a tab.
+    function dimensionQueryString(tab) {
+        return dimensionLevels
+            .map((lvl, i) => `${encodeURIComponent(lvl.key)}=${encodeURIComponent(selections[tab][i] || '')}`)
+            .join('&');
+    }
+
+    function isPathFullySelected(tab) {
+        return dimensionLevels.length === 0
+            || (selections[tab].length === dimensionLevels.length && selections[tab].every(v => !!v));
+    }
+
     async function executeFlow() {
-        const env     = document.getElementById('envSelect').value;
-        const app     = document.getElementById('appSelect').value;
-        const channel = document.getElementById('channelSelect').value;
-        const body    = document.getElementById('requestBody').value;
-        if (!selectedFlow || !env || !channel) { showToast('Please select environment, channel, and flow', 'error'); return; }
+        const body = document.getElementById('requestBody').value;
+        if (!selectedFlow || !isPathFullySelected('flow')) { showToast('Please select every dimension and a flow', 'error'); return; }
         let parsed;
         try { parsed = JSON.parse(body || '{}'); } catch(e) { showToast('Invalid JSON: ' + e.message, 'error'); return; }
-        addToHistory(selectedFlow, env, app, channel, body);
-        const url = `${API_SUITES_URL}?type=${encodeURIComponent(selectedFlow)}&environment=${encodeURIComponent(env)}&application=${app}&channel=${channel}`;
+        addToHistory(selectedFlow, selections.flow.slice(), body);
+        const url = `${API_SUITES_URL}?type=${encodeURIComponent(selectedFlow)}&${dimensionQueryString('flow')}`;
         await flowExecutor.execute(url, parsed);
     }
 
@@ -1847,24 +1807,16 @@
     }
 
     async function runAllFlows() {
-        const env     = document.getElementById('envSelect').value;
-        const app     = document.getElementById('appSelect').value;
-        const channel = document.getElementById('channelSelect').value;
-        if (!env)     { showToast('Please select an environment', 'error'); return; }
-        if (!app)     { showToast('Please select an application', 'error'); return; }
-        if (!channel) { showToast('Please select a channel', 'error'); return; }
-        const url = `${RUN_ALL_FLOWS_URL}?environment=${encodeURIComponent(env)}&application=${app}&channel=${channel}`;
-        addToHistory('run-all-flows', env, app, channel, '{}');
+        if (!isPathFullySelected('flow')) { showToast('Please select every dimension', 'error'); return; }
+        const url = `${RUN_ALL_FLOWS_URL}?${dimensionQueryString('flow')}`;
+        addToHistory('run-all-flows', selections.flow.slice(), '{}');
         await flowExecutor.execute(url, {});
     }
 
     function resetRequestBody() {
         document.getElementById('requestBody').value = '{}';
-        document.getElementById('envSelect').value = '';
-        document.getElementById('appSelect').value = '';  document.getElementById('appSelect').disabled = true;
-        document.getElementById('channelSelect').value = ''; document.getElementById('channelSelect').disabled = true;
+        setSelections('flow', []);
         document.getElementById('flowSelect').value = ''; document.getElementById('flowSelect').disabled = true;
-        updateEnvConfig('flow', '');
         showToast('Form reset', 'info');
     }
 
@@ -1872,20 +1824,15 @@
        API TESTER — UI LOGIC
     ══════════════════════════════════════════════════════════════ */
     async function executeAPICall() {
-        const env     = document.getElementById('apiEnvSelect').value;
-        const app     = document.getElementById('apiAppSelect').value;
-        const channel = document.getElementById('apiChannelSelect').value;
         const method  = document.getElementById('apiMethod').value;
         const path    = document.getElementById('apiPath').value;
         const payload = document.getElementById('apiPayload').value;
         const auth    = document.getElementById('apiAuthenticated').checked;
-        if (!env)     { showToast('Please select an environment', 'error'); return; }
-        if (!app)     { showToast('Please select an application', 'error'); return; }
-        if (!channel) { showToast('Please select a channel', 'error'); return; }
+        if (!isPathFullySelected('api')) { showToast('Please select every dimension', 'error'); return; }
         if (!path)    { showToast('Please enter a request path', 'error'); return; }
         let body = {};
         if (payload.trim()) { try { body = JSON.parse(payload); } catch(e) { showToast('Invalid JSON: ' + e.message, 'error'); return; } }
-        let url = `${API_CALL_URL}?environment=${encodeURIComponent(env)}&application=${app}&channel=${channel}&path=${encodeURIComponent(path)}&method=${method}`;
+        let url = `${API_CALL_URL}?${dimensionQueryString('api')}&path=${encodeURIComponent(path)}&method=${method}`;
         if (auth) url += '&authenticated=true';
         await apiExecutor.execute(url, body);
     }
@@ -1954,84 +1901,125 @@
         return v.split(/[-_]/).map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ');
     }
 
-    function updateApplications() {
-        const env = document.getElementById('envSelect').value;
-        const appSel = document.getElementById('appSelect');
-        const prev = appSel.value;
-        appSel.innerHTML = '<option value="">Select an application…</option>';
-        appSel.disabled = true;
-        if (env && envToAppToChannels[env]) {
-            Object.keys(envToAppToChannels[env]).forEach(app => {
-                const o = document.createElement('option');
-                o.value = app; o.textContent = applications[app] || humanizeSelectOption(app);
-                appSel.appendChild(o);
-            });
-            appSel.disabled = false;
-            if (prev && envToAppToChannels[env][prev]) appSel.value = prev;
-            else if (appSel.options.length > 1) { appSel.value = appSel.options[1].value; onApplicationChanged(); updateChannels(); return; }
+    // Walks configRoots down by key at each depth; returns the instance nodes at that depth.
+    function childrenAt(prefixKeys) {
+        let nodes = configRoots;
+        for (const key of prefixKeys) {
+            const match = nodes.find(n => n.key === key);
+            if (!match) return [];
+            nodes = match.children || [];
         }
-        updateChannels();
+        return nodes;
     }
 
-    function updateChannels() {
-        const env = document.getElementById('envSelect').value;
-        const app = document.getElementById('appSelect').value;
-        const chanSel = document.getElementById('channelSelect');
-        const flowSel = document.getElementById('flowSelect');
-        const prev = chanSel.value;
-        chanSel.innerHTML = '<option value="">Select channel…</option>';
-        chanSel.disabled = true;
-        flowSel.disabled = true;
-        if (env && app && envToAppToChannels[env]?.[app]) {
-            const channels = envToAppToChannels[env][app];
-            channels.forEach(ch => { const o = document.createElement('option'); o.value = ch; o.textContent = humanizeSelectOption(ch); chanSel.appendChild(o); });
-            chanSel.disabled = false;
-            if (prev && channels.includes(prev)) {
-                chanSel.value = prev;
-                flowSel.disabled = false;
-            }
-            else if (channels.length > 0) {
-                chanSel.value = channels[0];
-                flowSel.disabled = false;  // Enable flow select when channel is auto-selected
-                updateFlows();
-                return;
-            }
-        }
-        updateFlows();
+    // Flows whose supportedDimensionsPattern matches at least one real instance path
+    // under the given selected-keys prefix. With no configuration at all, flows are ungated.
+    function flowsAvailableFor(prefixKeys) {
+        if (instancePaths.length === 0) return flows;
+        const prefix = prefixKeys.filter(Boolean).join('.');
+        return flows.filter(f => instancePaths.some(p =>
+            (!prefix || p === prefix || p.startsWith(prefix + '.')) && f.pattern.test(p)
+        ));
     }
 
-    function getMissingInvolvedApps(flow) {
-        if (!flow?.involvedApplications?.length) return [];
-        const env = document.getElementById('envSelect').value;
-        if (!env) return [];
-        const configuredApps = Object.keys(environmentConfigProperties.environments[env] || {}).map(k => k.toUpperCase());
-        return flow.involvedApplications.filter(a => !configuredApps.includes(a.toUpperCase()));
+    /* ══════════════════════════════════════════════════════════════
+       DIMENSION SELECTS (generic, N levels)
+    ══════════════════════════════════════════════════════════════ */
+    function renderDimensionSelects(tab) {
+        const containerMap = { flow: 'flowDimensionSelects', api: 'apiDimensionSelects', userSwitcher: 'userSwitcherDimensionSelects' };
+        const container = document.getElementById(containerMap[tab]);
+        selections[tab] = [];
+        container.innerHTML = '';
+        if (dimensionLevels.length === 0) {
+            container.innerHTML = '<div class="form-group"><span style="color:var(--text-muted);font-size:13px;">No dimensions configured</span></div>';
+            afterDimensionChange(tab);
+            return;
+        }
+        dimensionLevels.forEach((level, i) => {
+            const group = document.createElement('div'); group.className = 'form-group';
+            const label = document.createElement('label'); label.htmlFor = `${tab}Dim${i}Select`;
+            label.innerHTML = `<i class="fas fa-layer-group"></i> ${escapeHtml(level.name)} <span class="required">*</span>`;
+            const sel = document.createElement('select'); sel.id = `${tab}Dim${i}Select`; sel.required = true; sel.disabled = i > 0;
+            sel.addEventListener('change', () => onLevelChange(tab, i, sel.value));
+            group.appendChild(label); group.appendChild(sel);
+            container.appendChild(group);
+        });
+        populateLevel(tab, 0);
+    }
+
+    function populateLevel(tab, i) {
+        const sel = document.getElementById(`${tab}Dim${i}Select`);
+        if (!sel) return;
+        const prev = sel.value;
+        const level = dimensionLevels[i];
+        const nodes = childrenAt(selections[tab].slice(0, i));
+        sel.innerHTML = `<option value="">Select ${escapeHtml(level.name.toLowerCase())}...</option>`;
+        nodes.forEach(node => {
+            const o = document.createElement('option');
+            o.value = node.key; o.textContent = node.name || humanizeSelectOption(node.key);
+            sel.appendChild(o);
+        });
+        sel.disabled = nodes.length === 0;
+        if (prev && nodes.some(n => n.key === prev)) sel.value = prev;
+    }
+
+    function onLevelChange(tab, i, value) {
+        selections[tab] = selections[tab].slice(0, i);
+        selections[tab][i] = value;
+        for (let j = i + 1; j < dimensionLevels.length; j++) {
+            selections[tab][j] = '';
+            populateLevel(tab, j);
+            const sel = document.getElementById(`${tab}Dim${j}Select`);
+            if (sel) { sel.value = ''; sel.disabled = true; }
+        }
+        if (value && i + 1 < dimensionLevels.length) {
+            populateLevel(tab, i + 1);
+            const nextSel = document.getElementById(`${tab}Dim${i + 1}Select`);
+            if (nextSel) nextSel.disabled = false;
+        }
+        afterDimensionChange(tab);
+    }
+
+    // Drives the cascade programmatically (history replay, URL query param, resets).
+    function setSelections(tab, keys) {
+        renderDimensionSelects(tab);
+        for (let i = 0; i < dimensionLevels.length; i++) {
+            const sel = document.getElementById(`${tab}Dim${i}Select`);
+            if (!sel) break;
+            populateLevel(tab, i);
+            sel.disabled = false;
+            if (!keys[i]) break;
+            sel.value = keys[i];
+            selections[tab][i] = keys[i];
+        }
+        afterDimensionChange(tab);
+    }
+
+    function afterDimensionChange(tab) {
+        updateDimensionConfigCard(tab);
+        if (tab === 'flow') updateFlows();
     }
 
     function populateFlowSelect() {
-        const app = document.getElementById('appSelect').value;
         const flowSel = document.getElementById('flowSelect');
         const prev = flowSel.value;
         flowSel.innerHTML = '<option value="">Select a flow…</option>';
-        let avail = app ? flows.filter(f => !f.supportedApplications || f.supportedApplications.includes(app)) : flows;
+        const avail = flowsAvailableFor(selections.flow);
         const byModule = {};
         avail.forEach(f => { const m = f.module || 'Other'; (byModule[m] = byModule[m] || []).push(f); });
         Object.keys(byModule).sort().forEach(mod => {
             const grp = document.createElement('optgroup'); grp.label = mod;
             byModule[mod].forEach(f => {
                 const o = document.createElement('option');
-                o.value = f.type;
-                const missing = getMissingInvolvedApps(f);
-                o.textContent = missing.length ? `⚠ ${f.friendlyName}` : f.friendlyName;
-                if (missing.length) o.title = `Missing app config: ${missing.join(', ')}`;
+                o.value = f.type; o.textContent = f.friendlyName;
                 grp.appendChild(o);
             });
             flowSel.appendChild(grp);
         });
+        flowSel.disabled = avail.length === 0;
         if (prev && avail.find(f => f.type === prev)) { flowSel.value = prev; selectedFlow = prev; }
         else if (avail.length === 1) { flowSel.value = avail[0].type; selectedFlow = avail[0].type; selectFlow(selectedFlow); }
         else selectedFlow = null;
-        updateFlowWarningBadge(selectedFlow);
     }
 
     function updateFlows() { populateFlowSelect(); }
@@ -2043,30 +2031,9 @@
         Array.from(flowSel.querySelectorAll('optgroup')).forEach(g => { g.hidden = !Array.from(g.querySelectorAll('option')).some(o => !o.hidden); });
     }
 
-    function onApplicationChanged() {
-        const app = document.getElementById('appSelect').value;
-        if (app !== previouslySelectedApp) {
-            document.getElementById('flowSelect').value = ''; selectedFlow = null;
-            previouslySelectedApp = app; displaySupportedParameters(null);
-        }
-    }
-
     function selectFlow(flowType) {
         selectedFlow = flowType;
         displaySupportedParameters(flowType);
-        updateFlowWarningBadge(flowType);
-    }
-
-    function updateFlowWarningBadge(flowType) {
-        const badge = document.getElementById('flowWarningBadge');
-        if (!badge) return;
-        if (!flowType) { badge.style.display = 'none'; return; }
-        const flow = flows.find(f => f.type === flowType);
-        const missing = getMissingInvolvedApps(flow);
-        if (!missing.length) { badge.style.display = 'none'; return; }
-        badge.style.display = 'flex';
-        const missingNames = missing.map(a => applications[a] || applications[a.toUpperCase()] || a);
-        badge.innerHTML = `<i class="fas fa-exclamation-triangle"></i> Missing app config in this env: <strong>${missingNames.join(', ')}</strong>`;
     }
 
     function displaySupportedParameters(flowType) {
@@ -2079,116 +2046,63 @@
         sec.style.display = 'block';
     }
 
-    function initAPITesterDropdowns() {
-        document.getElementById('apiEnvSelect').addEventListener('change', function() {
-            const env = this.value;
-            const appSel = document.getElementById('apiAppSelect');
-            const chanSel = document.getElementById('apiChannelSelect');
-            appSel.innerHTML = '<option value="">Select application…</option>'; chanSel.innerHTML = '<option value="">Select channel…</option>';
-            appSel.disabled = !env; chanSel.disabled = true;
-            if (env && envToAppToChannels[env]) {
-                Object.keys(envToAppToChannels[env]).forEach(app => {
-                    const o = document.createElement('option'); o.value = app; o.textContent = applications[app] || humanizeSelectOption(app); appSel.appendChild(o);
-                });
-                // Auto-select first app
-                if (appSel.options.length > 1) appSel.value = appSel.options[1].value;
-            }
-            updateEnvConfig('api', env);
-        });
-        document.getElementById('apiAppSelect').addEventListener('change', function() {
-            const env = document.getElementById('apiEnvSelect').value;
-            const app = this.value;
-            const chanSel = document.getElementById('apiChannelSelect');
-            chanSel.innerHTML = '<option value="">Select channel…</option>'; chanSel.disabled = !app;
-            if (env && app && envToAppToChannels[env]?.[app]) {
-                envToAppToChannels[env][app].forEach(ch => { const o = document.createElement('option'); o.value = ch; o.textContent = humanizeSelectOption(ch); chanSel.appendChild(o); });
-                // Auto-select first channel
-                if (chanSel.options.length > 1) chanSel.value = chanSel.options[1].value;
-            }
-        });
-    }
-
     /* ══════════════════════════════════════════════════════════════
-       ENV CONFIG CARD
+       DIMENSION CONFIG CARD
     ══════════════════════════════════════════════════════════════ */
-    function updateEnvConfig(tab, env) {
+    function updateDimensionConfigCard(tab) {
         const cardId = tab === 'flow' ? 'flowEnvConfigCard' : 'apiEnvConfigCard';
         const card = document.getElementById(cardId);
-        if (!env || !environmentConfigProperties.environments?.[env]) {
-            card.innerHTML = '<div class="env-config-header"><i class="fas fa-cog"></i> Environment Configuration</div><div class="config-section"><div style="text-align:center;color:#64748b;padding:20px;"><i class="fas fa-info-circle" style="font-size:24px;display:block;margin-bottom:8px;"></i>Select an environment</div></div>';
+        const chosen = selections[tab] || [];
+        if (dimensionLevels.length === 0 || !chosen[0]) {
+            const message = dimensionLevels.length === 0 ? 'No dimensions configured' : `Select a ${dimensionLevels[0].name.toLowerCase()}`;
+            card.innerHTML = `<div class="env-config-header"><i class="fas fa-cog"></i> Configuration</div><div class="config-section"><div style="text-align:center;color:#64748b;padding:20px;"><i class="fas fa-info-circle" style="font-size:24px;display:block;margin-bottom:8px;"></i>${escapeHtml(message)}</div></div>`;
             card.classList.add('active'); return;
         }
-        const envCfg = environmentConfigProperties.environments[env];
-        let html = '<div class="env-config-header"><i class="fas fa-cog"></i> Environment Configuration</div>';
-        const globals = Object.entries(envCfg.__meta || {})
-            .filter(([, v]) => v != null && v !== '' && typeof v !== 'object')
-            .map(([k, v]) => ({
-                label: k.replace(/([A-Z])/g, ' $1').replace(/^./, s => s.toUpperCase()).trim(),
-                value: v,
-                path: `environments.${env}.__meta.${k}`,
-            }));
-        if (globals.length) {
-            html += '<div class="config-section"><div class="config-section-title"><i class="fas fa-globe"></i> Global Settings</div><div class="config-grid">';
-            globals.forEach(g => { html += `<div class="config-property"><span class="property-label">${escapeHtml(g.label)}</span><span class="property-value editable-config" data-path="${escapeHtml(g.path)}" title="Click to edit">${escapeHtml(g.value)}</span></div>`; });
-            html += '</div></div>';
+        let html = '<div class="env-config-header"><i class="fas fa-cog"></i> Configuration</div>';
+        let nodes = configRoots;
+        for (let i = 0; i < dimensionLevels.length && chosen[i]; i++) {
+            const node = nodes.find(n => n.key === chosen[i]);
+            if (!node) break;
+            const entries = Object.entries(node.metadata || {}).filter(([, v]) => v != null && v !== '' && typeof v !== 'object');
+            if (entries.length) {
+                html += `<div class="config-section"><div class="config-section-title"><i class="fas fa-cube"></i> ${escapeHtml(dimensionLevels[i].name)}: ${escapeHtml(node.name || node.key)}</div><div class="config-grid">`;
+                entries.forEach(([k, v]) => {
+                    const label = k.replace(/([A-Z])/g, ' $1').replace(/^./, s => s.toUpperCase()).trim();
+                    html += `<div class="config-property"><span class="property-label">${escapeHtml(label)}</span><span class="property-value editable-config" data-node-path="${escapeHtml(chosen.slice(0, i + 1).join('|'))}" data-key="${escapeHtml(k)}" title="Click to edit">${escapeHtml(String(v))}</span></div>`;
+                });
+                html += '</div></div>';
+            }
+            nodes = node.children || [];
         }
-        Object.entries(applications).forEach(([key, friendlyName]) => {
-            const cfg = envCfg[key.toLowerCase()];
-            if (!cfg || !Object.keys(cfg).length) return;
-            html += `<div class="config-section"><div class="config-section-title"><i class="fas fa-cube"></i> ${escapeHtml(friendlyName)}</div><div class="config-grid">`;
-            Object.entries(cfg).forEach(([k, v]) => {
-                if (v == null || v === '') return;
-                if (typeof v === 'object') return; // skip nested objects (credentials/parameters) in summary view
-                const label = k.replace(/([A-Z])/g,' $1').replace(/^./,s=>s.toUpperCase()).trim();
-                const path  = `environments.${env}.${key.toLowerCase()}.${k}`;
-                html += `<div class="config-property"><span class="property-label">${escapeHtml(label)}</span><span class="property-value editable-config" data-path="${escapeHtml(path)}" title="Click to edit">${escapeHtml(String(v))}</span></div>`;
-            });
-            // Surface credentials username separately (read-only display, editable)
-            if (cfg.credentials && typeof cfg.credentials === 'object') {
-                Object.entries(cfg.credentials).forEach(([ck, cv]) => {
-                    if (cv == null || cv === '') return;
-                    const label = `Credentials: ${ck.charAt(0).toUpperCase()}${ck.slice(1)}`;
-                    const path  = `environments.${env}.${key.toLowerCase()}.credentials.${ck}`;
-                    html += `<div class="config-property"><span class="property-label">${escapeHtml(label)}</span><span class="property-value editable-config" data-path="${escapeHtml(path)}" title="Click to edit">${escapeHtml(String(cv))}</span></div>`;
-                });
-            }
-            // Surface parameters map entries
-            if (cfg.parameters && typeof cfg.parameters === 'object') {
-                Object.entries(cfg.parameters).forEach(([pk, pv]) => {
-                    if (pv == null || pv === '') return;
-                    const label = `Param: ${pk}`;
-                    const path  = `environments.${env}.${key.toLowerCase()}.parameters.${pk}`;
-                    html += `<div class="config-property"><span class="property-label">${escapeHtml(label)}</span><span class="property-value editable-config" data-path="${escapeHtml(path)}" title="Click to edit">${escapeHtml(String(pv))}</span></div>`;
-                });
-            }
-            html += '</div></div>';
-        });
         card.innerHTML = html; card.classList.add('active');
         card.querySelectorAll('.editable-config').forEach(el => el.addEventListener('click', () => startInlineEdit(el)));
     }
 
     function startInlineEdit(el) {
         if (el.querySelector('input')) return;
-        const cur = el.textContent; const path = el.dataset.path;
+        const cur = el.textContent;
+        const nodePath = el.dataset.nodePath.split('|');
+        const metaKey = el.dataset.key;
         const inp = document.createElement('input'); inp.type = 'text'; inp.value = cur;
         inp.style.cssText = 'width:100%;padding:4px 8px;border:1px solid var(--primary-color);border-radius:4px;font-size:12px;font-family:monospace;background:var(--bg-primary);color:var(--text-primary);';
         el.textContent = ''; el.appendChild(inp); inp.focus(); inp.select();
-        const save = () => { el.textContent = inp.value; if (inp.value !== cur) { setNestedValue(environmentConfigProperties, path, inp.value); showToast('Config updated (in-memory)', 'success'); } };
+        const save = () => {
+            el.textContent = inp.value;
+            if (inp.value !== cur) {
+                let nodes = configRoots, node = null;
+                for (const key of nodePath) { node = nodes.find(n => n.key === key); if (!node) break; nodes = node.children || []; }
+                if (node) { node.metadata = node.metadata || {}; node.metadata[metaKey] = inp.value; showToast('Config updated (in-memory)', 'success'); }
+            }
+        };
         inp.addEventListener('blur', save);
         inp.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); inp.blur(); } if (e.key === 'Escape') el.textContent = cur; });
-    }
-
-    function setNestedValue(obj, path, value) {
-        const keys = path.split('.'); let cur = obj;
-        for (let i = 0; i < keys.length - 1; i++) { if (!cur[keys[i]]) cur[keys[i]] = {}; cur = cur[keys[i]]; }
-        cur[keys[keys.length - 1]] = value;
     }
 
     /* ══════════════════════════════════════════════════════════════
        HISTORY
     ══════════════════════════════════════════════════════════════ */
-    function addToHistory(flowType, environment, application, channel, requestBody) {
-        const item = { id: Date.now().toString(), flowType, environment, application, channel, requestBody, timestamp: new Date().toISOString() };
+    function addToHistory(flowType, path, requestBody) {
+        const item = { id: Date.now().toString(), flowType, path, requestBody, timestamp: new Date().toISOString() };
         executionHistory.unshift(item);
         if (executionHistory.length > 50) executionHistory = executionHistory.slice(0, 50);
         localStorage.setItem('flowExecutorHistory', JSON.stringify(executionHistory));
@@ -2204,26 +2118,24 @@
     function renderHistory() {
         const c = document.getElementById('historyContent');
         if (!executionHistory.length) { c.innerHTML = '<div class="history-empty"><i class="fas fa-history"></i><p>No execution history yet</p></div>'; return; }
-        c.innerHTML = executionHistory.slice(0,20).map(item => `
+        c.innerHTML = executionHistory.slice(0,20).map(item => {
+            const path = item.path || [];
+            const details = dimensionLevels.map((lvl, i) =>
+                `<div class="history-item-detail"><i class="fas fa-layer-group"></i> ${escapeHtml(path[i] || '')}</div>`
+            ).join('');
+            return `
         <div class="history-item">
             <div class="history-item-header"><div class="history-item-title">${escapeHtml(item.flowType||'Unknown')}</div><div class="history-item-time">${new Date(item.timestamp).toLocaleString()}</div></div>
-            <div class="history-item-details">
-                <div class="history-item-detail"><i class="fas fa-server"></i> ${escapeHtml(item.environment)}</div>
-                <div class="history-item-detail"><i class="fas fa-cube"></i> ${escapeHtml(item.application)}</div>
-                <div class="history-item-detail"><i class="fas fa-stream"></i> ${escapeHtml(item.channel)}</div>
-            </div>
+            <div class="history-item-details">${details}</div>
             <div class="history-item-actions"><button class="history-action-btn" onclick="executeFromHistoryItem('${item.id}')"><i class="fas fa-play"></i> Run</button></div>
-        </div>`).join('');
+        </div>`;
+        }).join('');
     }
 
     function executeFromHistoryItem(id) {
         const item = executionHistory.find(h => h.id === id);
         if (!item) return;
-        document.getElementById('envSelect').value = item.environment;
-        updateEnvConfig('flow', item.environment); updateApplications();
-        document.getElementById('appSelect').value = item.application;
-        onApplicationChanged(); updateChannels();
-        document.getElementById('channelSelect').value = item.channel;
+        setSelections('flow', item.path || []);
         document.getElementById('flowSelect').value    = item.flowType; selectFlow(item.flowType);
         document.getElementById('requestBody').value   = item.requestBody;
         toggleHistory(); executeFlow();
@@ -2290,10 +2202,8 @@
     function showAboutModal()        { document.getElementById('aboutModal').classList.add('active'); }
     function showUserSwitcherModal() {
         document.getElementById('userSwitcherModal').classList.add('active');
-        ['userSwitcherEnv','userSwitcherApp','userSwitcherUsername','userSwitcherPassword'].forEach(id => {
-            const el = document.getElementById(id);
-            el.value = ''; if (id === 'userSwitcherApp') el.disabled = true;
-        });
+        setSelections('userSwitcher', []);
+        ['userSwitcherUsername','userSwitcherPassword'].forEach(id => { document.getElementById(id).value = ''; });
     }
     function closeModal(id) { document.getElementById(id).classList.remove('active'); }
 
@@ -2304,16 +2214,14 @@
     });
 
     function switchUser() {
-        const env      = document.getElementById('userSwitcherEnv').value;
-        const app      = document.getElementById('userSwitcherApp').value;
         const username = document.getElementById('userSwitcherUsername').value.trim();
         const password = document.getElementById('userSwitcherPassword').value.trim();
-        if (!env || !app || !username || !password) { showToast('All fields required', 'error'); return; }
+        if (!isPathFullySelected('userSwitcher') || !username || !password) { showToast('All fields required', 'error'); return; }
         const btn = document.querySelector('#userSwitcherModal .btn-primary');
         const orig = btn.innerHTML; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Switching…'; btn.disabled = true;
-        const params = new URLSearchParams(); params.append('environment', env); params.append('application', app); params.append('username', username); params.append('password', password);
+        const params = new URLSearchParams(dimensionQueryString('userSwitcher')); params.append('username', username); params.append('password', password);
         fetch('/flow/executor/update-configuration', { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: params })
-            .then(r => { if (r.ok) { showToast(`Switched to ${username} (${env}/${app})`, 'success'); closeModal('userSwitcherModal'); } else throw new Error(`HTTP ${r.status}`); })
+            .then(r => { if (r.ok) { showToast(`Switched to ${username} (${selections.userSwitcher.join('/')})`, 'success'); closeModal('userSwitcherModal'); } else throw new Error(`HTTP ${r.status}`); })
             .catch(e => showToast('Failed: ' + e.message, 'error'))
             .finally(() => { btn.innerHTML = orig; btn.disabled = false; });
     }
@@ -2446,34 +2354,9 @@
         syncPanelWidths();
 
         if (nextTab === 'api') {
-            _syncDropdownsToAPI(document.getElementById('envSelect').value, document.getElementById('appSelect').value, document.getElementById('channelSelect').value);
+            setSelections('api', selections.flow);
         } else if (nextTab === 'flow') {
-            const env = document.getElementById('apiEnvSelect').value;
-            if (env && document.getElementById('envSelect').value !== env) {
-                document.getElementById('envSelect').value = env; updateEnvConfig('flow', env); updateApplications();
-            }
-        }
-    }
-
-    function _syncDropdownsToAPI(env, app, channel) {
-        const apiEnvSel  = document.getElementById('apiEnvSelect');
-        const apiAppSel  = document.getElementById('apiAppSelect');
-        const apiChanSel = document.getElementById('apiChannelSelect');
-        apiEnvSel.value = env || ''; updateEnvConfig('api', env);
-        apiAppSel.innerHTML = '<option value="">Select application…</option>'; apiAppSel.disabled = !env;
-        if (env && envToAppToChannels[env]) {
-            Object.keys(envToAppToChannels[env]).forEach(a => {
-                const o = document.createElement('option'); o.value = a; o.textContent = applications[a] || humanizeSelectOption(a); apiAppSel.appendChild(o);
-            });
-            if (app && envToAppToChannels[env][app]) apiAppSel.value = app;
-            else if (apiAppSel.options.length > 1) apiAppSel.value = apiAppSel.options[1].value;
-        }
-        apiChanSel.innerHTML = '<option value="">Select channel…</option>';
-        const selApp = apiAppSel.value; apiChanSel.disabled = !selApp;
-        if (env && selApp && envToAppToChannels[env]?.[selApp]) {
-            envToAppToChannels[env][selApp].forEach(ch => { const o = document.createElement('option'); o.value = ch; o.textContent = humanizeSelectOption(ch); apiChanSel.appendChild(o); });
-            if (channel && envToAppToChannels[env][selApp].includes(channel)) apiChanSel.value = channel;
-            else if (apiChanSel.options.length > 1) apiChanSel.value = apiChanSel.options[1].value;
+            if (selections.api.some(Boolean)) setSelections('flow', selections.api);
         }
     }
 
@@ -2589,8 +2472,8 @@
          "configuration": [ FlowDimensionInstance tree: { dimension, key, name, metadata, children } ],
          "handlers":      [ { type, name, friendlyName, module, supportedParameters, supportedDimensionsPattern } ]
        }
-       The configuration tree is walked generically by depth to match the UI's
-       environment (depth 0) -> application (depth 1) -> channel (depth 2) model.
+       Both trees can be any depth (including empty) — dimensionLevels is derived
+       from the schema's first-child chain, not hardcoded names.
     ══════════════════════════════════════════════════════════════ */
 
     // Converts a Java regex built with java.util.regex.Pattern.quote(...) (\Q...\E
@@ -2609,53 +2492,34 @@
         }
     }
 
-    function buildDerivedData(data) {
-        const configuration = Array.isArray(data.configuration) ? data.configuration : [];
-        const rawHandlers   = Array.isArray(data.handlers) ? data.handlers : [];
-
-        environments = configuration.map(env => env.key);
-
-        environmentConfigProperties = { environments: {} };
-        envToAppToChannels = {};
-        applications = {};
-
-        for (const env of configuration) {
-            const envCfg = { __meta: env.metadata || {} };
-            environmentConfigProperties.environments[env.key] = envCfg;
-            envToAppToChannels[env.key] = {};
-
-            for (const app of (env.children || [])) {
-                if (!applications[app.key]) {
-                    applications[app.key] = app.name || humanizeSelectOption(app.key);
-                }
-                envCfg[app.key.toLowerCase()] = app.metadata || {};
-                envToAppToChannels[env.key][app.key] = (app.children || []).map(ch => ch.key);
-            }
+    // Walks the schema's first-child chain into a flat list of levels; [] if empty.
+    function collectDimensionLevels(schema) {
+        const levels = [];
+        let node = schema[0];
+        while (node) {
+            levels.push({ key: node.key, name: node.name || humanizeSelectOption(node.key) });
+            node = (node.children || [])[0];
         }
+        return levels;
+    }
 
-        const instancePaths = [];
-        collectInstancePaths(configuration, '', instancePaths);
+    function buildDerivedData(data) {
+        const schema      = Array.isArray(data.dimensions) ? data.dimensions : [];
+        configRoots       = Array.isArray(data.configuration) ? data.configuration : [];
+        const rawHandlers = Array.isArray(data.handlers) ? data.handlers : [];
 
-        // Flows derived from the real handler catalogue; the applications a handler
-        // supports are derived by matching its dimensions pattern against every real
-        // instance path and collecting the application-level (depth 1) segment.
-        flows = rawHandlers.map(h => {
-            const regex = new RegExp(`^${javaPatternToJsRegexSource(h.supportedDimensionsPattern || '.*')}$`);
-            const supportedApplications = [...new Set(
-                instancePaths
-                    .filter(path => regex.test(path))
-                    .map(path => path.split('.')[1])
-                    .filter(Boolean)
-            )];
-            return {
-                type: h.type,
-                friendlyName: h.friendlyName || humanizeSelectOption(h.type || ''),
-                module: h.module || 'Other',
-                supportedApplications,
-                supportedParameters: h.supportedParameters || {},
-                involvedApplications: supportedApplications,
-            };
-        });
+        dimensionLevels = collectDimensionLevels(schema);
+
+        instancePaths = [];
+        collectInstancePaths(configRoots, '', instancePaths);
+
+        flows = rawHandlers.map(h => ({
+            type: h.type,
+            friendlyName: h.friendlyName || humanizeSelectOption(h.type || ''),
+            module: h.module || 'Other',
+            supportedParameters: h.supportedParameters || {},
+            pattern: new RegExp(`^${javaPatternToJsRegexSource(h.supportedDimensionsPattern || '.*')}$`),
+        }));
     }
 
     async function loadConfig() {
@@ -2666,7 +2530,9 @@
             buildDerivedData(data);
         } catch (e) {
             showToast('Failed to load configuration: ' + e.message, 'error');
-            environments = [];
+            dimensionLevels = [];
+            configRoots = [];
+            instancePaths = [];
             flows = [];
         }
     }
@@ -2683,70 +2549,25 @@
 
         await loadConfig();
 
-        // Populate environment selects with data loaded from the backend
-        ['envSelect','apiEnvSelect','userSwitcherEnv'].forEach(id => {
-            const sel = document.getElementById(id);
-            environments.forEach(env => {
-                const o = document.createElement('option');
-                o.value = env;
-                o.textContent = humanizeSelectOption(env);
-                sel.appendChild(o);
-            });
-        });
+        renderDimensionSelects('flow');
+        renderDimensionSelects('api');
+        renderDimensionSelects('userSwitcher');
 
-        initAPITesterDropdowns();
-
-        document.getElementById('appSelect').disabled     = true;
-        document.getElementById('channelSelect').disabled = true;
-        document.getElementById('flowSelect').disabled    = true;
+        document.getElementById('flowSelect').disabled = true;
         populateFlowSelect();
 
-        if (selectedEnvironmentFromQuery && environments.includes(selectedEnvironmentFromQuery)) {
-            document.getElementById('envSelect').value = selectedEnvironmentFromQuery;
-            updateEnvConfig('flow', selectedEnvironmentFromQuery);
-            updateApplications();
-        } else {
-            // Auto-select first environment
-            const envSelect = document.getElementById('envSelect');
-            if (envSelect.options.length > 1) {
-                envSelect.value = envSelect.options[1].value;
-                updateEnvConfig('flow', envSelect.value);
-                updateApplications();
-            }
+        if (selectedDim0FromQuery && dimensionLevels.length && childrenAt([]).some(n => n.key === selectedDim0FromQuery)) {
+            setSelections('flow', [selectedDim0FromQuery]);
+        } else if (dimensionLevels.length) {
+            const first = childrenAt([])[0];
+            if (first) setSelections('flow', [first.key]);
         }
 
-        _syncDropdownsToAPI(
-            document.getElementById('envSelect').value,
-            document.getElementById('appSelect').value,
-            document.getElementById('channelSelect').value
-        );
+        setSelections('api', selections.flow);
 
-        document.getElementById('envSelect').addEventListener('change', function() {
-            updateEnvConfig('flow', this.value); updateApplications();
-        });
-        document.getElementById('appSelect').addEventListener('change', function() {
-            onApplicationChanged(); updateChannels();
-        });
-        document.getElementById('channelSelect').addEventListener('change', function() {
-            document.getElementById('flowSelect').disabled = !this.value; updateFlows();
-        });
         document.getElementById('flowSelect').addEventListener('change', function() {
             selectFlow(this.value);
         });
-
-        document.getElementById('userSwitcherEnv').addEventListener('change', function() {
-            const appSel = document.getElementById('userSwitcherApp');
-            appSel.innerHTML = '<option value="">Select application…</option>'; appSel.disabled = !this.value;
-            if (this.value && envToAppToChannels[this.value]) {
-                Object.keys(envToAppToChannels[this.value]).forEach(app => {
-                    const o = document.createElement('option'); o.value = app; o.textContent = applications[app] || humanizeSelectOption(app); appSel.appendChild(o);
-                });
-                appSel.disabled = appSel.options.length <= 1;
-            }
-        });
-
-        updateEnvConfig('flow', document.getElementById('envSelect').value);
-        updateEnvConfig('api',  document.getElementById('apiEnvSelect').value);
     });
 </script>
 </body>
