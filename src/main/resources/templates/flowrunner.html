@@ -363,6 +363,7 @@
             handlers: []
         };
 
+        let flatDimensions = []; // Flattened dimension hierarchy
         let selectedPath = {};
 
         document.addEventListener('DOMContentLoaded', () => {
@@ -387,6 +388,9 @@
                 const response = await fetch(API_CONFIG);
                 config = await response.json();
 
+                // Flatten the nested dimension hierarchy
+                flatDimensions = flattenDimensions(config.dimensions);
+
                 // Create cascading dimension selects
                 renderDimensionSelects();
 
@@ -399,18 +403,33 @@
             }
         }
 
+        function flattenDimensions(dimensions) {
+            const flat = [];
+            function traverse(dims) {
+                if (!dims || dims.length === 0) return;
+                dims.forEach(dim => {
+                    flat.push(dim);
+                    if (dim.children && dim.children.length > 0) {
+                        traverse(dim.children);
+                    }
+                });
+            }
+            traverse(dimensions);
+            return flat;
+        }
+
         function renderDimensionSelects() {
             const container = document.getElementById('dimensionSelects');
             container.innerHTML = '';
             selectedPath = {};
 
-            if (!config.dimensions || config.dimensions.length === 0) {
+            if (!flatDimensions || flatDimensions.length === 0) {
                 container.innerHTML = '<p style="color: var(--text-muted); font-size: 13px;">No dimensions configured</p>';
                 return;
             }
 
-            // Create selects for each dimension level
-            config.dimensions.forEach((dimension, idx) => {
+            // Create selects for each dimension level (flat array)
+            flatDimensions.forEach((dimension, idx) => {
                 renderDimensionSelect(dimension, idx, container);
             });
         }
@@ -547,7 +566,7 @@
 
         function updateDimensionInfo() {
             const infoBadge = document.getElementById('dimensionInfo');
-            const path = config.dimensions
+            const path = flatDimensions
                 .map(dim => selectedPath[dim.key])
                 .filter(val => val);
 
@@ -594,7 +613,7 @@
             const params = document.getElementById('requestInput').value;
 
             // Check if all required dimensions are selected
-            const missingRequired = config.dimensions
+            const missingRequired = flatDimensions
                 .filter(dim => dim.required && !selectedPath[dim.key])
                 .map(dim => dim.name);
 
@@ -608,7 +627,7 @@
                 return;
             }
 
-            const dimensionPath = config.dimensions
+            const dimensionPath = flatDimensions
                 .map(dim => selectedPath[dim.key])
                 .filter(val => val)
                 .join('.');
@@ -636,7 +655,7 @@
 
         function clearForm() {
             // Clear all dimension selects
-            config.dimensions.forEach((dim, idx) => {
+            flatDimensions.forEach((dim, idx) => {
                 const select = document.getElementById(`dim-${idx}`);
                 if (select) select.value = '';
             });
