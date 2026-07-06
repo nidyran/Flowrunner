@@ -29,7 +29,7 @@ flowrunner:
         children:
           - dimension: application
             key: customer
-            name: Customer Application
+            name: Customer
             children:
               - dimension: channel
                 key: web
@@ -39,7 +39,7 @@ flowrunner:
                 name: Mobile
           - dimension: application
             key: backoffice
-            name: Backoffice Console
+            name: Backoffice
             children:
               - dimension: channel
                 key: web
