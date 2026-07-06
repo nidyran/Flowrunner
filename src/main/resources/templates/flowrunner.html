@@ -6,7 +6,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>Flowrunner - Flow Execution Engine</title>
+    <title>Bankerise Platform Flows Executor</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
@@ -59,811 +59,2715 @@
             -webkit-font-smoothing: antialiased;
         }
 
-        .header {
-            padding: 16px 24px;
-            background: var(--bg-primary);
+        .sidebar-topbar {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            padding-bottom: 14px;
             border-bottom: 1px solid var(--border-color);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
             flex-shrink: 0;
-            box-shadow: var(--shadow-sm);
         }
-
-        .header-title {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            font-size: 18px;
-            font-weight: 700;
-            color: var(--text-primary);
-        }
-
-        .header-title i {
-            font-size: 24px;
-            color: var(--primary-color);
-        }
-
-        .header-actions {
-            display: flex;
-            gap: 8px;
-            align-items: center;
-        }
-
-        .btn-icon {
-            width: 36px;
-            height: 36px;
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            background: transparent;
-            color: var(--text-muted);
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+        .sidebar-brand { display: flex; align-items: center; gap: 8px; }
+        .sidebar-brand-icon { font-size: 18px; color: var(--primary-color); flex-shrink: 0; }
+        .sidebar-brand-title { font-size: 13px; font-weight: 700; color: var(--text-primary); letter-spacing: -0.2px; line-height: 1.25; }
+        .sidebar-topbar-actions { display: flex; align-items: center; gap: 8px; justify-content: center; width: 100%; }
+        .sidebar-icon-btn {
+            width: 36px; height: 36px; flex: 1; max-width: 48px;
+            border: 1px solid var(--border-color); border-radius: 6px;
+            background: transparent; color: var(--text-muted);
+            font-size: 14px; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
             transition: var(--transition);
-            font-size: 14px;
         }
+        .sidebar-icon-btn:hover { background: var(--secondary-color); border-color: var(--primary-color); color: var(--primary-color); }
+        .sidebar-icon-btn.user-switch-btn { background: rgba(59,130,246,0.1); border-color: var(--primary-color); color: var(--primary-color); }
+        .sidebar-icon-btn.user-switch-btn:hover { background: rgba(59,130,246,0.2); }
 
-        .btn-icon:hover {
-            background: var(--secondary-color);
-            border-color: var(--primary-color);
-            color: var(--primary-color);
+        .sidebar-collapse-btn {
+            position: absolute; top: 50%; right: -17px; transform: translateY(-50%);
+            width: 34px; height: 34px; background: var(--bg-primary);
+            border: 2px solid var(--border-color); border-radius: 50%;
+            color: var(--text-muted); font-size: 12px; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            z-index: 50; transition: all 0.2s ease; box-shadow: var(--shadow-sm);
         }
+        .sidebar-collapse-btn:hover { background: var(--primary-color); border-color: var(--primary-color); color: white; transform: translateY(-50%) scale(1.1); box-shadow: 0 0 10px rgba(59,130,246,0.25); }
+        .left-panel-container.collapsed .sidebar-collapse-btn:hover { transform: translateY(-50%) scale(1.15); box-shadow: 0 0 16px rgba(59,130,246,0.5); }
 
-        .container {
-            flex: 1;
-            display: flex;
-            overflow: hidden;
-            min-height: 0;
-        }
+        .left-panel-container.collapsed { width: 0 !important; min-width: 0 !important; overflow: visible; }
+        .left-panel-container.collapsed > .left-panel,
+        .left-panel-container.collapsed > .left-panel-footer { display: none; }
+        .left-panel-container.collapsed .sidebar-collapse-btn { right: -34px; background: var(--primary-color); border-color: var(--primary-color); color: white; }
+        .left-panel-container.collapsed .resize-handle { display: none; }
+
+        .sidebar-mode-toggle { display: flex; border: 1px solid var(--border-color); border-radius: 8px; overflow: hidden; background: var(--bg-secondary); flex-shrink: 0; }
+        .sidebar-mode-btn { flex: 1; padding: 8px 6px; border: none; background: transparent; font-size: 11px; font-weight: 600; color: var(--text-muted); cursor: pointer; transition: var(--transition); display: flex; align-items: center; justify-content: center; gap: 4px; }
+        .sidebar-mode-btn.active { background: var(--primary-color); color: white; }
+        .sidebar-mode-btn:not(.active):hover { background: var(--border-color); color: var(--text-primary); }
+
+        .container { flex: 1; display: flex; overflow: hidden; min-height: 0; }
+        .page-content { display: none; flex: 1; min-height: 0; }
+        .page-content.active { display: flex; flex: 1; min-height: 0; }
 
         .left-panel-container {
-            display: flex;
-            flex-direction: column;
-            position: relative;
-            background: var(--bg-primary);
-            box-shadow: var(--shadow-md);
-            z-index: 10;
-            transition: width 0.3s ease;
-            height: 100%;
-            overflow: hidden;
-            min-width: 280px;
-            max-width: 400px;
-            width: 320px;
+            display: flex; flex-direction: column; position: relative;
+            background: var(--bg-primary); box-shadow: var(--shadow-md); z-index: 10;
+            transition: width 0.3s ease; height: 100%; overflow: hidden;
+            min-width: 260px;
         }
-
         .left-panel {
-            padding: 20px;
-            overflow-y: auto;
-            overflow-x: hidden;
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-            width: 100%;
-            flex: 1;
-            min-height: 0;
+            padding: 16px 16px 0 16px; overflow-y: auto; overflow-x: hidden;
+            display: flex; flex-direction: column; gap: 14px;
+            width: 100%; flex: 1; min-height: 0;
+        }
+        .left-panel-footer { padding: 12px 16px; border-top: 1px solid var(--border-color); background: var(--bg-primary); flex-shrink: 0; }
+        .left-panel::-webkit-scrollbar { width: 10px; }
+        .left-panel::-webkit-scrollbar-track { background: #f1f5f9; }
+        .left-panel::-webkit-scrollbar-thumb { background: #cbd5e0; border-radius: 4px; }
+
+        .resize-handle {
+            position: absolute; right: -5px; top: 0; bottom: 0;
+            width: 10px; cursor: col-resize; background: transparent; z-index: 10; transition: var(--transition);
+        }
+        .resize-handle:hover, .resize-handle.active { background: rgba(59,130,246,0.1); }
+        .resize-handle:hover::after, .resize-handle.active::after {
+            content: ''; position: absolute; top: 50%; left: 50%;
+            transform: translate(-50%, -50%); width: 2px; height: 40px;
+            background: var(--primary-color); border-radius: 1px;
         }
 
-        .left-panel-footer {
-            padding: 16px 20px;
-            border-top: 1px solid var(--border-color);
-            background: var(--bg-primary);
-            flex-shrink: 0;
+        .right-panel { flex: 1; display: flex; flex-direction: column; background: var(--bg-tertiary); padding: 16px; min-height: 0; overflow: hidden; }
+
+        .section { margin-bottom: 20px; }
+        .section-title { font-size: 13px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
+        .section-title .resize-info { font-size: 11px; font-weight: normal; color: var(--text-muted); cursor: pointer; padding: 2px 8px; border-radius: 4px; background: var(--secondary-color); transition: var(--transition); }
+        .section-title .resize-info:hover { background: var(--border-color); }
+        .form-group { margin-bottom: 20px; position: relative; }
+        .searchable-select-wrapper { position: relative; }
+        .searchable-select-input {
+            width: 100%; padding: 8px 12px; border: 1px solid var(--border-color); border-radius: 6px;
+            font-size: 13px; background: var(--bg-primary); color: var(--text-primary);
+            margin-bottom: 4px; transition: var(--transition);
         }
+        .searchable-select-input:focus { border-color: var(--primary-color); outline: none; box-shadow: 0 0 0 3px rgba(59,130,246,0.1); }
+        .searchable-select-input:disabled { opacity: 0.5; cursor: not-allowed; }
+        label { display: flex; align-items: center; font-size: 14px; font-weight: 600; margin-bottom: 8px; color: var(--text-secondary); gap: 8px; }
+        label i { font-size: 14px; color: var(--primary-color); width: 16px; }
+        .required { color: var(--error-color); margin-left: 2px; }
 
-        .left-panel::-webkit-scrollbar { width: 8px; }
-        .left-panel::-webkit-scrollbar-track { background: var(--bg-secondary); }
-        .left-panel::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 4px; }
-
-        .right-panel {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            background: var(--bg-tertiary);
-            padding: 20px;
-            min-height: 0;
-            overflow: hidden;
+        #userSwitcherModal select, #userSwitcherModal textarea, #userSwitcherModal input:not([type="checkbox"]) {
+            width: 100%; padding: 12px 16px; border: 2px solid var(--border-color); border-radius: 8px;
+            font-size: 15px; font-family: inherit; background: var(--bg-primary); color: var(--text-primary);
+            transition: all 0.2s ease; -webkit-appearance: none; appearance: none;
         }
-
-        .section {
-            margin-bottom: 0;
+        #userSwitcherModal select:focus, #userSwitcherModal textarea:focus, #userSwitcherModal input:not([type="checkbox"]):focus {
+            outline: none; border-color: var(--primary-color);
+            box-shadow: 0 0 0 4px rgba(59,130,246,0.15);
         }
-
-        .section-title {
-            font-size: 12px;
-            font-weight: 700;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 12px;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .form-group {
-            margin-bottom: 16px;
-            position: relative;
-        }
-
-        label {
-            display: flex;
-            align-items: center;
-            font-size: 13px;
-            font-weight: 600;
-            margin-bottom: 6px;
-            color: var(--text-secondary);
-            gap: 6px;
-        }
-
-        label i {
-            font-size: 13px;
-            color: var(--primary-color);
-            width: 14px;
-        }
-
-        .required {
-            color: var(--error-color);
+        #userSwitcherModal select {
+            cursor: pointer;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='10' viewBox='0 0 14 10'%3E%3Cpath fill='%233b82f6' stroke='%233b82f6' stroke-width='1' d='M7 10L0 0h14z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat; background-position: right 16px center; padding-right: 44px;
         }
 
         select, textarea, input:not([type="checkbox"]) {
-            width: 100%;
-            padding: 8px 12px;
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            font-size: 13px;
-            font-family: inherit;
-            background: var(--bg-primary);
-            color: var(--text-primary);
-            transition: var(--transition);
-            -webkit-appearance: none;
-            appearance: none;
+            width: 100%; padding: 10px 12px; border: 1px solid var(--border-color); border-radius: 6px;
+            font-size: 14px; font-family: inherit; background: var(--bg-primary); color: var(--text-primary);
+            transition: var(--transition); -webkit-appearance: none; appearance: none;
         }
+        select:focus, textarea:focus, input:not([type="checkbox"]):focus { outline: none; border-color: var(--primary-color); box-shadow: 0 0 0 3px rgba(59,130,246,0.1); }
+        select { cursor: pointer; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%2364748b' d='M6 8L0 0h12z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 36px; }
+        select:disabled { background: var(--secondary-color); color: var(--text-muted); cursor: not-allowed; border-color: var(--border-color); }
 
-        select:focus, textarea:focus, input:not([type="checkbox"]):focus {
-            outline: none;
-            border-color: var(--primary-color);
-            box-shadow: 0 0 0 3px rgba(59,130,246,0.1);
-        }
+        #userSwitcherModal .modal-body { padding: 24px; }
+        #userSwitcherModal .form-group { position: relative; }
 
-        select {
-            cursor: pointer;
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%2364748b' d='M6 8L0 0h12z'/%3E%3C/svg%3E");
-            background-repeat: no-repeat;
-            background-position: right 12px center;
-            padding-right: 36px;
-        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .fa-spin { animation: spin 1s linear infinite; }
 
-        textarea {
-            height: 100px;
-            font-family: 'Consolas', 'Monaco', monospace;
-            font-size: 12px;
-            resize: vertical;
-        }
+        textarea { height: 140px; font-family: 'Consolas','Monaco',monospace; resize: vertical; font-size: 13px; line-height: 1.6; }
 
-        .button-group {
-            display: flex;
-            gap: 8px;
-            margin-top: 8px;
-        }
+        .checkbox-group { display: flex; gap: 16px; flex-wrap: wrap; }
+        .checkbox-label { display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 13px; font-weight: 500; color: var(--text-secondary); margin-bottom: 0; padding: 8px 12px; border-radius: 6px; transition: var(--transition); }
+        .checkbox-label:hover { background: var(--secondary-color); }
+        .checkbox-label input[type="checkbox"] { width: auto; height: auto; margin: 0; cursor: pointer; }
 
-        .button-group button {
-            flex: 1;
-            padding: 10px 12px;
-            border: none;
-            border-radius: 6px;
-            font-size: 13px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: var(--transition);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-            user-select: none;
-        }
+        .json-editor { position: relative; }
+        .json-toolbar { position: absolute; top: 8px; right: 8px; display: flex; gap: 6px; z-index: 10; }
+        .json-btn { background: var(--bg-primary); border: 1px solid var(--border-color); color: var(--text-secondary); border-radius: 4px; padding: 4px 8px; font-size: 11px; cursor: pointer; transition: var(--transition); display: flex; align-items: center; gap: 4px; }
+        .json-btn:hover { background: var(--secondary-color); border-color: var(--primary-color); color: var(--primary-color); }
 
-        .btn-primary {
-            background: var(--primary-color);
-            color: white;
-        }
+        .button-group { display: flex; gap: 6px; margin-top: 0; }
+        .button-group button { flex: 1; min-width: 0; padding: 10px 8px; border: none; border-radius: 6px; font-size: 14px; font-weight: 500; cursor: pointer; transition: var(--transition); display: flex; align-items: center; justify-content: center; gap: 6px; user-select: none; }
+        button { border: none; border-radius: 6px; font-size: 14px; font-weight: 500; cursor: pointer; transition: var(--transition); display: flex; align-items: center; justify-content: center; gap: 6px; user-select: none; }
+        .button-group button .btn-label { overflow: hidden; max-width: 120px; white-space: nowrap; }
+        .btn-primary { background: var(--primary-color); color: white; }
+        .btn-primary:hover { background: var(--primary-hover); transform: translateY(-1px); box-shadow: var(--shadow-md); }
+        .btn-primary:active { background: var(--primary-active); transform: translateY(0); }
+        .btn-secondary { background: var(--bg-primary); color: var(--text-secondary); border: 1px solid var(--border-color); }
+        .btn-secondary:hover { background: var(--secondary-color); border-color: var(--primary-color); color: var(--primary-color); }
 
-        .btn-primary:hover {
-            background: var(--primary-hover);
-            transform: translateY(-1px);
-            box-shadow: var(--shadow-md);
-        }
+        .env-config-card { background: transparent; border: none; border-radius: 0; padding: 0; margin-top: 16px; display: none; }
+        .env-config-card.active { display: block; animation: slideDown 0.3s ease; }
+        @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+        .env-config-header { font-size: 12px; font-weight: 600; color: var(--text-muted); margin-bottom: 16px; text-transform: uppercase; letter-spacing: 0.5px; display: flex; align-items: center; gap: 6px; padding-bottom: 8px; border-bottom: 1px solid var(--border-color); }
+        .config-section { background: transparent; border: none; border-radius: 0; padding: 0; margin-top: 16px; }
+        .config-section-title { font-size: 12px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid var(--border-color); display: flex; align-items: center; gap: 6px; }
+        .config-grid { display: flex; flex-direction: column; gap: 12px; margin-top: 12px; }
+        .config-property { display: flex; flex-direction: column; gap: 4px; }
+        .property-label { font-size: 12px; font-weight: 600; color: var(--text-muted); }
+        .property-value { font-size: 13px; font-weight: 400; color: var(--text-primary); font-family: 'Consolas','Monaco',monospace; word-break: break-all; line-height: 1.4; }
+        .property-value.editable-config { cursor: pointer; padding: 2px 4px; border-radius: 4px; transition: var(--transition); }
+        .property-value.editable-config:hover { background: rgba(59,130,246,0.1); outline: 1px dashed var(--primary-color); }
 
-        .btn-primary:active {
-            background: var(--primary-active);
-            transform: translateY(0);
-        }
+        .response-container { flex: 1; display: flex; flex-direction: column; background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 8px; overflow: hidden; min-height: 0; box-shadow: var(--shadow-sm); position: relative; }
+        .response-header { padding: 16px 20px; background: var(--bg-tertiary); border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; }
+        .response-title { font-size: 14px; font-weight: 600; color: var(--text-primary); display: flex; align-items: center; gap: 8px; }
+        .response-actions { display: flex; gap: 12px; align-items: center; }
+        .execution-duration { font-size: 13px; font-weight: 600; color: var(--primary-color); display: flex; align-items: center; gap: 6px; }
+        .copy-btn { padding: 6px 12px; background: var(--primary-color); color: white; border: none; border-radius: 4px; font-size: 12px; font-weight: 500; cursor: pointer; transition: var(--transition); display: flex; align-items: center; gap: 6px; }
+        .copy-btn:hover { background: var(--primary-hover); }
+        .copy-btn.copied { background: var(--success-color); }
 
-        .btn-secondary {
-            background: var(--bg-primary);
-            color: var(--text-secondary);
-            border: 1px solid var(--border-color);
-        }
+        .status { padding: 12px 20px; font-size: 13px; font-weight: 500; display: none; border-bottom: 1px solid var(--border-color); animation: slideDown 0.3s ease; }
+        .status.loading { display: flex; align-items: center; gap: 8px; background: rgba(59,130,246,0.1); color: #1e40af; }
+        .status.loading::before { content: ''; width: 16px; height: 16px; border: 2px solid rgba(59,130,246,0.3); border-top: 2px solid #3b82f6; border-radius: 50%; animation: spin 1s linear infinite; }
+        .status.success { display: flex; align-items: center; gap: 8px; background: rgba(34,197,94,0.1); color: #15803d; }
+        .status.error { display: flex; align-items: center; gap: 8px; background: rgba(239,68,68,0.1); color: #dc2626; }
+        body.dark-theme .status.loading { background: rgba(59,130,246,0.15); color: #93c5fd; }
+        body.dark-theme .status.success { background: rgba(34,197,94,0.15); color: #86efac; }
+        body.dark-theme .status.error { background: rgba(239,68,68,0.15); color: #fca5a5; }
 
-        .btn-secondary:hover {
-            background: var(--secondary-color);
-            border-color: var(--primary-color);
-            color: var(--primary-color);
-        }
-
-        .response-container {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            background: var(--bg-primary);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            overflow: hidden;
-            min-height: 0;
-            box-shadow: var(--shadow-sm);
-            position: relative;
-        }
-
-        .response-header {
-            padding: 16px 20px;
-            background: var(--bg-tertiary);
-            border-bottom: 1px solid var(--border-color);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-shrink: 0;
-        }
-
-        .response-title {
-            font-size: 14px;
-            font-weight: 600;
-            color: var(--text-primary);
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .response-actions {
-            display: flex;
-            gap: 8px;
-            align-items: center;
-        }
-
-        .copy-btn {
-            padding: 6px 12px;
-            background: var(--primary-color);
-            color: white;
-            border: none;
-            border-radius: 4px;
-            font-size: 12px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: var(--transition);
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .copy-btn:hover {
-            background: var(--primary-hover);
-        }
-
-        .status {
-            padding: 12px 20px;
-            font-size: 13px;
-            font-weight: 500;
-            display: none;
-            border-bottom: 1px solid var(--border-color);
-            animation: slideDown 0.3s ease;
-        }
-
-        .status.loading {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            background: rgba(59,130,246,0.1);
-            color: #1e40af;
-        }
-
-        .status.loading::before {
-            content: '';
-            width: 14px;
-            height: 14px;
-            border: 2px solid rgba(59,130,246,0.3);
-            border-top: 2px solid var(--primary-color);
-            border-radius: 50%;
-            animation: spin 0.6s linear infinite;
-        }
-
-        .status.success {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            background: rgba(16,185,129,0.1);
-            color: #047857;
-        }
-
-        .status.error {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            background: rgba(239,68,68,0.1);
-            color: #dc2626;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
-        @keyframes slideDown {
-            from { opacity: 0; transform: translateY(-10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
+        .execution-progress-bar { height: 3px; width: 100%; background: var(--border-color); overflow: hidden; }
+        .execution-progress-bar-fill { height: 100%; width: 30%; background: linear-gradient(90deg, var(--primary-color), #a78bfa); border-radius: 2px; animation: progressSlide 1.5s ease-in-out infinite; }
+        @keyframes progressSlide { 0% { transform: translateX(-100%); } 100% { transform: translateX(400%); } }
 
         .response-output {
-            flex: 1;
-            min-height: 0;
-            background: #1e293b;
-            color: #e2e8f0;
-            padding: 16px;
-            overflow-x: auto;
-            overflow-y: auto;
-            font-family: 'Consolas', 'Monaco', monospace;
-            font-size: 12px;
-            white-space: pre-wrap;
-            word-break: break-word;
-            line-height: 1.5;
-            user-select: text;
+            flex: 1; min-height: 0;
+            background: #1e293b; color: #e2e8f0; padding: 0;
+            overflow-x: auto; overflow-y: auto;
+            font-family: 'Consolas','Monaco',monospace; font-size: 13px;
+            white-space: pre-wrap; word-break: break-word; line-height: 1.6;
+            user-select: text; border-radius: 0 0 8px 8px;
         }
 
-        .log-entry {
-            margin-bottom: 8px;
-            padding: 6px 10px;
-            background: rgba(0,0,0,0.2);
-            border-radius: 4px;
-            border-left: 3px solid #60a5fa;
+        .steps-container {
+            background: #1e293b; display: flex;
+            flex-direction: column; gap: 6px; padding: 10px 12px;
+            box-sizing: border-box; border-radius: 0 0 8px 8px;
+            white-space: normal;
         }
 
-        .log-entry.success {
-            border-left-color: #10b981;
-            color: #86efac;
+        .step-card {
+            flex-shrink: 0; background: #0f172a; border: 1px solid #334155;
+            border-radius: 6px; overflow: hidden; width: 100%; box-sizing: border-box;
         }
 
-        .log-entry.error {
-            border-left-color: #ef4444;
-            color: #fca5a5;
+        .step-card.pending { border-color: #475569; opacity: 0.85; }
+        .step-card.pending .step-header { cursor: default; }
+
+        .step-header {
+            padding: 10px 14px; background: #1e293b; cursor: pointer;
+            display: flex; align-items: center; gap: 10px; user-select: none;
+            transition: background 0.2s ease; min-width: 0;
+        }
+        .step-header:hover { background: #334155; }
+        .step-header:hover .step-copy-btn { opacity: 1; visibility: visible; }
+        .step-header.expanded { background: #334155; }
+        .step-toggle { font-size: 12px; color: #94a3b8; transition: transform 0.2s ease; width: 16px; flex-shrink: 0; }
+        .step-header.expanded .step-toggle { transform: rotate(90deg); }
+        .step-copy-btn {
+            opacity: 0; visibility: hidden;
+            transition: opacity 0.2s ease, visibility 0.2s ease;
+            background: transparent; border: 1px solid #475569; color: #94a3b8;
+            border-radius: 3px; font-size: 9px; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            width: 20px; height: 20px; flex: 0 0 20px;
+        }
+        .step-copy-btn:hover { background: rgba(59,130,246,0.2); border-color: #60a5fa; color: #60a5fa; }
+        .step-copy-btn i { font-size: 8px; }
+
+        .step-method { padding: 3px 7px; border-radius: 3px; font-weight: 600; font-size: 11px; min-width: 45px; flex-shrink: 0; text-align: center; }
+        .step-method.GET    { background: rgba(59,130,246,0.2); color: #60a5fa; }
+        .step-method.POST   { background: rgba(34,197,94,0.2);  color: #86efac; }
+        .step-method.PUT    { background: rgba(251,191,36,0.2); color: #fcd34d; }
+        .step-method.DELETE { background: rgba(239,68,68,0.2);  color: #fca5a5; }
+        .step-method.PATCH  { background: rgba(168,85,247,0.2); color: #d8b4fe; }
+
+        .step-app-chip { flex-shrink: 0; padding: 2px 6px; border-radius: 3px; font-weight: 500; font-size: 10px; background: rgba(14,165,233,0.15); color: #7dd3fc; border: 1px solid rgba(14,165,233,0.25); line-height: 1.4; }
+
+        .step-url { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #cbd5e1; font-size: 12px; font-family: 'Consolas','Monaco',monospace; }
+
+        .step-status { padding: 3px 7px; border-radius: 3px; font-weight: 600; font-size: 11px; min-width: 50px; flex-shrink: 0; text-align: center; margin-left: 6px; }
+        .step-status.success { background: rgba(16,185,129,0.2); color: #6ee7b7; }
+        .step-status.error   { background: rgba(239,68,68,0.2);  color: #fca5a5; }
+        .step-status.pending { background: rgba(96,165,250,0.15); color: #93c5fd; display: flex; align-items: center; gap: 4px; }
+        .step-status.pending::before { content: ''; width: 8px; height: 8px; border: 1.5px solid rgba(96,165,250,0.3); border-top-color: #60a5fa; border-radius: 50%; animation: spin 0.7s linear infinite; flex-shrink: 0; }
+
+        .step-duration { padding: 3px 7px; border-radius: 3px; font-weight: 600; font-size: 11px; flex-shrink: 0; background: rgba(96,165,250,0.2); color: #93c5fd; margin-left: 6px; display: flex; align-items: center; gap: 4px; }
+        .step-duration i { font-size: 10px; }
+
+        .step-details { display: none; border-top: 1px solid #334155; }
+        .step-header.expanded ~ .step-details { display: block; }
+
+        .step-section { border-bottom: 1px solid #2a3a50; }
+        .step-section:last-child { border-bottom: none; }
+
+        .step-section-header {
+            padding: 4px 10px; background: #0a0f1a; color: #60a5fa;
+            font-weight: 600; font-size: 11px; border-bottom: 1px solid #2a3a50;
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .step-section-copy-btn { background: transparent; border: 1px solid #475569; color: #94a3b8; border-radius: 3px; font-size: 9px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s ease; width: 18px; height: 18px; flex: 0 0 18px; }
+        .step-section-copy-btn:hover { background: rgba(59,130,246,0.2); border-color: #60a5fa; color: #60a5fa; }
+        .step-section-copy-btn i { font-size: 8px; }
+
+        .step-content {
+            padding: 8px 10px; color: #e2e8f0;
+            font-family: 'Consolas','Monaco',monospace; font-size: 12px;
+            white-space: pre-wrap; word-break: break-all;
+            line-height: 1.5; overflow-x: auto; overflow-y: auto;
+            max-height: 600px; box-sizing: border-box; width: 100%;
         }
 
-        .log-entry.warning {
-            border-left-color: #f59e0b;
-            color: #fcd34d;
+        /* Side-by-side request/response layout */
+        .step-sections-wrapper {
+            display: flex; flex-direction: column; gap: 0;
+        }
+        .step-sections-wrapper.side-by-side {
+            flex-direction: row;
+        }
+        .step-sections-wrapper.side-by-side .step-section {
+            flex: 1; min-width: 0;
+            border-right: 1px solid #334155;
+        }
+        .step-sections-wrapper.side-by-side .step-section:last-child {
+            border-right: none;
+        }
+        .step-sections-wrapper.side-by-side .step-section-header {
+            border-bottom: 1px solid #2a3a50;
+        }
+        .step-sections-wrapper.side-by-side .step-content {
+            max-height: 400px;
         }
 
-        .info-badge {
-            font-size: 12px;
-            padding: 8px 12px;
-            background: rgba(59,130,246,0.1);
-            color: var(--primary-color);
-            border-radius: 4px;
-            border: 1px solid rgba(59,130,246,0.2);
-            margin-top: 8px;
-        }
+        .step-content .json-key    { color: #7dd3fc; }
+        .step-content .json-string { color: #86efac; }
+        .step-content .json-number { color: #fbbf24; }
+        .step-content .json-bool   { color: #c4b5fd; }
+        .step-content .json-null   { color: #94a3b8; font-style: italic; }
 
-        .handler-info {
-            margin-top: 12px;
-            padding: 10px;
-            background: var(--bg-secondary);
-            border-radius: 6px;
-            font-size: 12px;
-            color: var(--text-secondary);
-            display: none;
-        }
+        .log-card { flex-shrink: 0; background: #0f172a; border: 1px solid #334155; border-left: 4px solid #60a5fa; border-radius: 4px; padding: 8px 14px; width: 100%; box-sizing: border-box; }
+        .log-card.success { border-left-color: #10b981; }
+        .log-card.error   { border-left-color: #ef4444; }
+        .log-card.warning { border-left-color: #f59e0b; }
+        .log-card.insight { border-left-color: #a855f7; background: #1a0f2e; }
+        .log-message { color: #cbd5e1; font-size: 13px; font-family: 'Consolas','Monaco',monospace; white-space: pre-wrap; word-break: break-word; line-height: 1.5; }
+        .insight-header { display: flex; align-items: center; gap: 8px; color: #c084fc; font-size: 12px; font-weight: 600; margin-bottom: 10px; font-family: sans-serif; }
+        .insight-header i { font-size: 14px; }
+        .insight-metadata { display: flex; gap: 8px; margin-bottom: 8px; flex-wrap: wrap; }
+        .metadata-badge { display: inline-flex; align-items: center; padding: 4px 10px; border-radius: 4px; font-size: 11px; font-weight: 600; font-family: 'Consolas','Monaco',monospace; }
+        .metadata-badge.provider-badge { background: rgba(34, 197, 94, 0.2); color: #86efac; border: 1px solid rgba(34, 197, 94, 0.5); }
+        .metadata-badge.model-badge { background: rgba(168, 85, 247, 0.2); color: #d8b4fe; border: 1px solid rgba(168, 85, 247, 0.5); }
+        .insight-body { color: #e2e8f0; font-size: 13px; line-height: 1.7; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+        .insight-body h1,.insight-body h2,.insight-body h3 { color: #c084fc; margin: 12px 0 6px; font-size: 14px; }
+        .insight-body h1 { font-size: 16px; }
+        .insight-body p { margin: 6px 0; }
+        .insight-body ul,.insight-body ol { margin: 6px 0 6px 20px; }
+        .insight-body li { margin: 3px 0; }
+        .insight-body code { background: #2d1b69; color: #e879f9; padding: 1px 5px; border-radius: 3px; font-family: 'Consolas','Monaco',monospace; font-size: 12px; }
+        .insight-body pre { background: #2d1b69; padding: 10px; border-radius: 4px; overflow-x: auto; margin: 8px 0; }
+        .insight-body pre code { background: none; padding: 0; color: #f0abfc; }
+        .insight-body strong { color: #f0abfc; }
+        .insight-body blockquote { border-left: 3px solid #a855f7; margin: 8px 0; padding-left: 10px; color: #94a3b8; }
+        .log-card.sql { border-left-color: #10b981; background: #0c2d1a; }
+        .log-card.json { border-left-color: #f59e0b; background: #2d1f0c; }
+        .log-card.markdown { border-left-color: #06b6d4; background: #0c3d4d; }
 
-        .handler-info.active {
-            display: block;
-        }
+        .log-caller { float: right; display: inline-flex; align-items: center; gap: 4px; font-size: 10px; color: #64748b; margin: -2px 0 2px 6px; font-family: 'Consolas','Monaco',monospace; line-height: 1; flex-shrink: 0; }
+        .log-caller i { font-size: 9px; color: #475569; }
+        .sql-header { display: flex; align-items: center; gap: 8px; color: #34d399; font-size: 12px; font-weight: 600; margin-bottom: 10px; font-family: sans-serif; }
+        .sql-header i { font-size: 14px; }
+        .sql-content { color: #cbd5e1; font-size: 13px; font-family: 'Consolas','Monaco',monospace; white-space: pre-wrap; word-break: break-word; line-height: 1.6; background: rgba(0,0,0,0.3); padding: 8px 10px; border-radius: 4px; border-left: 3px solid #34d399; overflow-x: auto; }
+        .json-log-header { display: flex; align-items: center; gap: 8px; color: #fbbf24; font-size: 12px; font-weight: 600; margin-bottom: 10px; font-family: sans-serif; }
+        .json-log-header i { font-size: 14px; }
+        .markdown-header { display: flex; align-items: center; gap: 8px; color: #22d3ee; font-size: 12px; font-weight: 600; margin-bottom: 10px; font-family: sans-serif; }
+        .markdown-header i { font-size: 14px; }
+        .markdown-body { color: #e2e8f0; font-size: 13px; line-height: 1.7; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: rgba(6, 182, 212, 0.08); padding: 10px; border-radius: 4px; border-left: 3px solid #22d3ee; overflow-x: auto; }
+        .markdown-body h1,.markdown-body h2,.markdown-body h3 { color: #22d3ee; margin: 12px 0 6px; font-size: 14px; }
+        .markdown-body h1 { font-size: 16px; }
+        .markdown-body p { margin: 6px 0; }
+        .markdown-body ul,.markdown-body ol { margin: 6px 0 6px 20px; }
+        .markdown-body li { margin: 3px 0; }
+        .markdown-body code { background: rgba(6, 182, 212, 0.2); color: #67e8f9; padding: 2px 6px; border-radius: 3px; font-family: 'Consolas','Monaco',monospace; font-size: 12px; }
+        .markdown-body pre { background: rgba(0, 0, 0, 0.3); padding: 10px; border-radius: 4px; overflow-x: auto; margin: 8px 0; border-left: 2px solid #22d3ee; }
+        .markdown-body pre code { background: none; padding: 0; color: #67e8f9; }
+        .markdown-body strong { color: #67e8f9; }
+        .markdown-body blockquote { border-left: 3px solid #22d3ee; margin: 8px 0; padding-left: 10px; color: #cbd5e1; }
+        .markdown-body a { color: #22d3ee; text-decoration: underline; }
+        .markdown-body a:hover { color: #67e8f9; }
+        .markdown-body table { display: block; overflow-x: auto; border-collapse: collapse; max-width: 100%; white-space: nowrap; }
+        .markdown-body th, .markdown-body td { border: 1px solid #334155; padding: 6px 10px; text-align: left; }
+        .markdown-body th { background: rgba(6, 182, 212, 0.15); color: #22d3ee; font-weight: 600; }
+        .markdown-body tr:nth-child(even) { background: rgba(0,0,0,0.1); }
 
-        ::-webkit-scrollbar { width: 8px; height: 8px; }
-        ::-webkit-scrollbar-track { background: var(--bg-secondary); }
+        .section-card { flex-shrink: 0; background: #1e293b; border: 1px solid #475569; border-left: 4px solid #8b5cf6; border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.3); display: flex; flex-direction: column; width: 100%; box-sizing: border-box; overflow: hidden; }
+        .section-header { background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); color: #fff; padding: 10px 14px; font-weight: 600; font-size: 13px; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: all 0.2s ease; flex-shrink: 0; }
+        .section-header:hover { background: linear-gradient(135deg, #a78bfa 0%, #8b5cf6 100%); }
+        .section-header.expanded { background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%); }
+        .section-card.has-error { border-left-color: #ef4444; }
+        .section-card.has-error .section-header { background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); }
+        .section-card.has-error .section-header:hover { background: linear-gradient(135deg, #f87171 0%, #ef4444 100%); }
+        .section-card.has-error .section-header.expanded { background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%); }
+        .section-toggle { display: inline-flex; align-items: center; flex-shrink: 0; transition: transform 0.2s ease; }
+        .section-header.expanded .section-toggle { transform: rotate(90deg); }
+
+        .section-content { display: none; background: #0f172a; padding: 8px 10px; border-top: 1px solid #334155; overflow: visible; box-sizing: border-box; }
+        .section-content.expanded { display: flex; flex-direction: column; gap: 6px; }
+        .section-items-wrapper { display: flex; flex-direction: column; gap: 6px; }
+
+        .section-step-card { flex-shrink: 0; background: #1e293b; border: 1px solid #334155; border-radius: 4px; overflow: hidden; width: 100%; box-sizing: border-box; }
+        .section-step-header { background: #2d3f55; padding: 7px 10px; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: background 0.2s ease; min-width: 0; }
+        .section-step-header:hover { background: #475569; }
+        .section-step-header:hover .step-copy-btn { opacity: 1; visibility: visible; }
+        .section-step-header.expanded { background: #475569; }
+        .section-step-card .step-details { display: none; border-top: 1px solid #334155; }
+        .section-step-header.expanded ~ .step-details { display: block; }
+        .section-step-card.pending { border-color: #475569; opacity: 0.85; }
+
+        .auto-scroll-btn { position: fixed; bottom: 24px; right: 28px; padding: 10px 16px; background: var(--primary-color); color: white; border: none; border-radius: 6px; font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.3s ease; display: none; align-items: center; justify-content: center; gap: 8px; z-index: 50; box-shadow: 0 4px 16px rgba(59,130,246,0.4); }
+        .auto-scroll-btn:hover { background: var(--primary-hover); }
+        .auto-scroll-btn.visible { display: flex; animation: slideUp 0.3s ease; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .history-panel { position: fixed; right: -400px; top: 0; width: 400px; height: 100%; background: var(--bg-primary); box-shadow: -4px 0 6px -1px rgba(0,0,0,0.1); z-index: 100; transition: right 0.3s ease; display: flex; flex-direction: column; }
+        .history-panel.active { right: 0; }
+        .history-header { padding: 16px 20px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; }
+        .history-title { font-size: 16px; font-weight: 600; color: var(--text-primary); display: flex; align-items: center; gap: 8px; }
+        .history-header-actions { display: flex; gap: 8px; align-items: center; }
+        .history-close, .history-clear-btn { display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; padding: 0; flex: 0 0 32px; background: transparent; border: none; color: var(--text-muted); cursor: pointer; border-radius: 4px; transition: var(--transition); }
+        .history-close { font-size: 18px; }
+        .history-close:hover { background: var(--secondary-color); color: var(--text-primary); }
+        .history-clear-btn:hover { background: var(--error-color); color: #fff; }
+        .history-content { flex: 1; overflow-y: auto; padding: 16px; }
+        .history-item { padding: 12px; border: 1px solid var(--border-color); border-radius: 6px; margin-bottom: 12px; cursor: pointer; transition: var(--transition); }
+        .history-item:hover { background: var(--secondary-color); border-color: var(--primary-color); }
+        .history-item-header { display: flex; justify-content: space-between; margin-bottom: 8px; }
+        .history-item-title { font-size: 14px; font-weight: 600; color: var(--text-primary); }
+        .history-item-time { font-size: 12px; color: var(--text-muted); }
+        .history-item-details { font-size: 12px; color: var(--text-secondary); display: flex; gap: 12px; }
+        .history-item-detail { display: flex; align-items: center; gap: 4px; }
+        .history-item-actions { display: flex; gap: 8px; margin-top: 12px; }
+        .history-action-btn { width: 100%; padding: 8px 12px; border: none; border-radius: 4px; background: var(--primary-color); color: white; font-size: 12px; font-weight: 500; cursor: pointer; transition: var(--transition); display: flex; align-items: center; justify-content: center; gap: 6px; }
+        .history-action-btn:hover { background: var(--primary-hover); }
+        .history-empty { text-align: center; padding: 40px 20px; color: var(--text-muted); font-size: 14px; }
+
+        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000; opacity: 0; visibility: hidden; transition: all 0.3s ease; backdrop-filter: blur(4px); }
+        .modal-overlay.active { opacity: 1; visibility: visible; }
+        .modal { background: var(--bg-primary); border-radius: 12px; width: 90%; max-width: 520px; max-height: 80vh; overflow: hidden; display: flex; flex-direction: column; transform: scale(0.9); transition: transform 0.3s ease; box-shadow: 0 20px 60px rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); }
+        .modal-overlay.active .modal { transform: scale(1); }
+        .modal-header { padding: 20px 24px 16px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; background: linear-gradient(135deg, rgba(59,130,246,0.05), rgba(99,102,241,0.05)); }
+        .modal-title { font-size: 18px; font-weight: 600; color: var(--text-primary); display: flex; align-items: center; gap: 8px; }
+        .modal-title i { color: var(--primary-color); font-size: 20px; }
+        .modal-close { display: flex; align-items: center; justify-content: center; width: 36px; height: 36px; padding: 0; flex: 0 0 36px; background: transparent; border: none; color: var(--text-muted); font-size: 20px; cursor: pointer; border-radius: 8px; transition: var(--transition); }
+        .modal-close:hover { background: rgba(239,68,68,0.1); color: #ef4444; transform: rotate(90deg); }
+        .modal-content { padding: 20px; overflow-y: auto; flex: 1; }
+        .modal-content.centered { display: flex; align-items: center; justify-content: center; padding: 0; }
+        .modal-footer { padding: 20px 24px; border-top: 1px solid var(--border-color); display: flex; justify-content: flex-end; gap: 12px; }
+        .shortcuts-list { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+        .shortcut-item { display: flex; align-items: center; gap: 12px; }
+        .shortcut-keys { background: var(--secondary-color); border: 1px solid var(--border-color); border-radius: 4px; padding: 4px 8px; font-family: 'Consolas','Monaco',monospace; font-size: 12px; color: var(--text-primary); min-width: 80px; text-align: center; }
+        .shortcut-desc { font-size: 14px; color: var(--text-secondary); }
+
+        .toast { position: fixed; bottom: 20px; right: 20px; padding: 12px 16px; background: var(--bg-primary); border-radius: 6px; box-shadow: var(--shadow-lg); display: flex; align-items: center; gap: 12px; transform: translateY(100px); opacity: 0; transition: all 0.3s ease; z-index: 1000; }
+        .toast.show { transform: translateY(0); opacity: 1; }
+        .toast-icon { font-size: 18px; flex-shrink: 0; }
+        .toast.success { border-left: 4px solid var(--success-color); }
+        .toast.success .toast-icon { color: var(--success-color); }
+        .toast.error { border-left: 4px solid var(--error-color); }
+        .toast.error .toast-icon { color: var(--error-color); }
+        .toast.info { border-left: 4px solid var(--primary-color); }
+        .toast.info .toast-icon { color: var(--primary-color); }
+        .toast-message { font-size: 14px; color: var(--text-primary); }
+        .toast-close { background: transparent; border: none; color: var(--text-muted); font-size: 16px; cursor: pointer; padding: 0; }
+
+        ::-webkit-scrollbar { width: 10px; height: 10px; }
+        ::-webkit-scrollbar-track { background: var(--secondary-color); }
         ::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 4px; }
+        .steps-container::-webkit-scrollbar-track { background: #0f172a; }
+        .steps-container::-webkit-scrollbar-thumb { background: #64748b; border-radius: 8px; border: 2px solid #0f172a; }
 
-        body.dark-theme .status.loading {
-            background: rgba(59,130,246,0.15);
-            color: #93c5fd;
+        .flow-warning-badge {
+            display: flex; align-items: center; gap: 6px; margin-top: 6px;
+            padding: 6px 10px; border-radius: 5px; font-size: 12px;
+            background: rgba(245,158,11,0.12); color: #f59e0b;
+            border: 1px solid rgba(245,158,11,0.35);
         }
+        .flow-warning-badge i { flex-shrink: 0; }
+        .flow-warning-badge strong { color: #fcd34d; }
 
-        body.dark-theme .status.success {
-            background: rgba(16,185,129,0.15);
-            color: #86efac;
+        #supportedParametersSection { display: none; margin-bottom: 16px; }
+
+        @media (max-width: 1024px) {
+            .container { flex-direction: column; }
+            .left-panel-container { border-right: none; border-bottom: 1px solid var(--border-color); max-height: 55vh; }
+            .resize-handle { display: none; }
         }
-
-        body.dark-theme .status.error {
-            background: rgba(239,68,68,0.15);
-            color: #fca5a5;
+        @media (max-width: 768px) {
+            .left-panel-container { width: 100% !important; max-height: 45vh; min-width: 0 !important; }
+            .button-group { flex-direction: column; gap: 10px; }
+            .sidebar-collapse-btn { display: none; }
+            .left-panel-container.collapsed { width: 100% !important; overflow: visible; }
+            .left-panel-container.collapsed > .left-panel,
+            .left-panel-container.collapsed > .left-panel-footer { display: flex; }
         }
     </style>
 </head>
 <body class="dark-theme">
-    <div class="header">
-        <div class="header-title">
-            <i class="fas fa-project-diagram"></i>
-            <span>Flowrunner</span>
-        </div>
-        <div class="header-actions">
-            <button class="btn-icon" onclick="toggleTheme()" title="Toggle theme">
-                <i class="fas fa-moon"></i>
-            </button>
-        </div>
-    </div>
 
+<!-- FLOW EXECUTOR PAGE -->
+<div id="flowExecutorPage" class="page-content active">
     <div class="container">
-        <div class="left-panel-container">
-            <div class="left-panel">
-                <div class="section">
-                    <div class="section-title">
-                        <i class="fas fa-layer-group"></i>
-                        Configuration
-                    </div>
-                    <div id="dimensionSelects"></div>
-                    <div class="info-badge" id="dimensionInfo" style="display: none;"></div>
-                </div>
 
+        <div class="left-panel-container" id="flowLeftPanelContainer">
+            <div class="left-panel">
+                <div class="sidebar-topbar">
+                    <div class="sidebar-brand">
+                        <i class="fas fa-project-diagram sidebar-brand-icon"></i>
+                        <div class="sidebar-brand-title">Flows Executor</div>
+                    </div>
+                    <div class="sidebar-topbar-actions">
+                        <button class="sidebar-icon-btn user-switch-btn" onclick="showUserSwitcherModal()" title="Switch User"><i class="fas fa-user-cog"></i></button>
+                        <button class="sidebar-icon-btn" onclick="toggleHistory()" title="History"><i class="fas fa-history"></i></button>
+                        <button class="sidebar-icon-btn" id="themeToggle" onclick="toggleTheme()" title="Toggle theme"><i class="fas fa-moon"></i></button>
+                        <button class="sidebar-icon-btn" onclick="showSettingsModal()" title="Settings"><i class="fas fa-cog"></i></button>
+                        <button class="sidebar-icon-btn" onclick="showShortcutsModal()" title="Keyboard shortcuts"><i class="fas fa-keyboard"></i></button>
+                        <button class="sidebar-icon-btn" onclick="showAboutModal()" title="About"><i class="fas fa-info-circle"></i></button>
+                    </div>
+                </div>
+                <div class="sidebar-mode-toggle">
+                    <button class="sidebar-mode-btn active" id="sidebarModeBtnFlow" onclick="toggleMode()"><i class="fas fa-project-diagram"></i> Flow</button>
+                    <button class="sidebar-mode-btn" id="sidebarModeBtnAPI" onclick="toggleMode()"><i class="fas fa-paper-plane"></i> API</button>
+                </div>
                 <div class="section">
                     <div class="section-title">
-                        <i class="fas fa-cube"></i>
-                        Flow Handler
+                        Configuration
+                        <span class="resize-info" onclick="resetPanelWidth('flow')">↔ Reset Width</span>
                     </div>
                     <div class="form-group">
-                        <label for="handlerSelect">Select Handler</label>
-                        <select id="handlerSelect" onchange="onHandlerSelect()">
-                            <option value="">Loading handlers...</option>
+                        <label for="envSelect"><i class="fas fa-server"></i> Environment <span class="required">*</span></label>
+                        <select id="envSelect" required>
+                            <option value="">Select environment...</option>
                         </select>
                     </div>
-                    <div class="handler-info" id="handlerInfo"></div>
-                </div>
-
-                <div class="section">
-                    <div class="section-title">
-                        <i class="fas fa-code"></i>
-                        Request Parameters
+                    <div class="form-group">
+                        <label for="appSelect"><i class="fas fa-cube"></i> Application <span class="required">*</span></label>
+                        <select id="appSelect" required disabled><option value="">Select application...</option></select>
                     </div>
                     <div class="form-group">
-                        <label for="requestInput">Parameters (JSON)</label>
-                        <textarea id="requestInput" placeholder='{"key": "value"}' spellcheck="false"></textarea>
+                        <label for="channelSelect"><i class="fas fa-stream"></i> Channel <span class="required">*</span></label>
+                        <select id="channelSelect" required disabled><option value="">Select channel...</option></select>
                     </div>
-                </div>
-            </div>
-
-            <div class="left-panel-footer">
-                <div class="button-group">
-                    <button class="btn-primary" onclick="executeFlow()">
-                        <i class="fas fa-play"></i>
-                        <span>Execute</span>
-                    </button>
-                    <button class="btn-secondary" onclick="clearForm()">
-                        <i class="fas fa-redo"></i>
-                        <span>Reset</span>
-                    </button>
-                </div>
-            </div>
-        </div>
-
-        <div class="right-panel">
-            <div class="response-container">
-                <div class="response-header">
-                    <div class="response-title">
-                        <i class="fas fa-terminal"></i>
-                        Execution Output
+                    <div class="form-group">
+                        <label for="flowSelect"><i class="fas fa-project-diagram"></i> Flow <span class="required">*</span></label>
+                        <div class="searchable-select-wrapper" id="flowSelectWrapper">
+                            <select id="flowSelect" required disabled><option value="">Select flow...</option></select>
+                        </div>
+                        <div id="flowWarningBadge" class="flow-warning-badge" style="display:none;"></div>
                     </div>
-                    <div class="response-actions">
-                        <button class="copy-btn" onclick="copyOutput()">
-                            <i class="fas fa-copy"></i>
-                            Copy
+                    <div class="form-group">
+                        <label for="requestBody"><i class="fas fa-code"></i> Request Body (JSON)</label>
+                        <div class="json-editor">
+                            <div class="json-toolbar">
+                                <button class="json-btn" onclick="formatJSON('requestBody')"><i class="fas fa-indent"></i> Format</button>
+                                <button class="json-btn" onclick="validateJSON('requestBody')"><i class="fas fa-check-circle"></i> Validate</button>
+                            </div>
+                            <textarea id="requestBody" placeholder='{"param1": "value1"}' spellcheck="false"></textarea>
+                        </div>
+                    </div>
+                    <div id="supportedParametersSection">
+                        <button class="btn-secondary" onclick="showParametersModal()" style="width:100%;justify-content:center;">
+                            <i class="fas fa-info-circle"></i> View Supported Parameters
                         </button>
                     </div>
                 </div>
-                <div id="status" class="status"></div>
-                <div id="output" class="response-output">Ready to execute flows...</div>
+                <div id="flowEnvConfigCard" class="env-config-card"></div>
+            </div>
+            <div class="left-panel-footer">
+                <div class="button-group" id="flowButtonGroup">
+                    <button class="btn-primary" onclick="executeFlow()"><i class="fas fa-play"></i><span class="btn-label">Execute</span></button>
+                    <button class="btn-primary" onclick="authenticateFlow()"><i class="fas fa-key"></i><span class="btn-label">Authenticate</span></button>
+                    <button class="btn-primary" onclick="runAllFlows()"><i class="fas fa-forward"></i><span class="btn-label">Run All</span></button>
+                    <button class="btn-secondary" onclick="resetRequestBody()"><i class="fas fa-undo"></i><span class="btn-label">Reset</span></button>
+                </div>
+            </div>
+            <div class="resize-handle" id="flowResizeHandle"></div>
+            <button class="sidebar-collapse-btn" id="flowCollapseBtn" onclick="toggleSidebar('flow')" title="Collapse panel" aria-label="Collapse sidebar"><i class="fas fa-chevron-left"></i></button>
+        </div>
+
+        <div class="right-panel">
+            <div class="response-container" id="flowResponseContainer">
+                <div class="response-header">
+                    <div class="response-title"><i class="fas fa-terminal"></i> Execution Result</div>
+                    <div class="response-actions">
+                        <div id="flowDuration" class="execution-duration" style="display:none;">
+                            <i class="fas fa-clock"></i> <span id="flowDurationCounter">00:00.00</span>
+                        </div>
+                        <button id="flowExpandCollapseBtn" class="copy-btn" onclick="flowRenderer.toggleExpandCollapseAll()" title="Expand/Collapse all" style="display:none;"><i class="fas fa-compress"></i></button>
+                        <button id="flowSideBySideBtn" class="copy-btn" onclick="toggleSideBySideBtn()" title="Toggle side-by-side view" style="display:none;"><i class="fas fa-columns"></i></button>
+                        <button class="copy-btn" onclick="postToRentry('flow')"><i class="fas fa-share-alt"></i> Rentry</button>
+                        <button class="copy-btn" onclick="copyRendererOutput('flow')"><i class="fas fa-copy"></i> Copy</button>
+                    </div>
+                </div>
+                <div id="flowStatus" class="status"></div>
+                <div id="flowProgressBar" class="execution-progress-bar" style="display:none;"><div class="execution-progress-bar-fill"></div></div>
+                <div id="flowOutput" class="response-output">Ready to execute flows...</div>
             </div>
         </div>
     </div>
+</div>
+<button id="flowAutoScrollBtn" class="auto-scroll-btn" onclick="flowRenderer.enableAutoScroll()"><i class="fas fa-arrow-down"></i> Follow logs</button>
 
-    <script>
-        const API_CONFIG = '/api/flowrunner/config';
-        let config = {
-            dimensions: [],
-            configuration: [],
-            handlers: []
+<!-- API TESTER PAGE -->
+<div id="apiTesterPage" class="page-content">
+    <div class="container">
+        <div class="left-panel-container" id="apiLeftPanelContainer">
+            <div class="left-panel">
+                <div class="sidebar-topbar">
+                    <div class="sidebar-brand">
+                        <i class="fas fa-project-diagram sidebar-brand-icon"></i>
+                        <div class="sidebar-brand-title">Flows Executor</div>
+                    </div>
+                    <div class="sidebar-topbar-actions">
+                        <button class="sidebar-icon-btn user-switch-btn" onclick="showUserSwitcherModal()" title="Switch User"><i class="fas fa-user-cog"></i></button>
+                        <button class="sidebar-icon-btn" onclick="toggleHistory()" title="History"><i class="fas fa-history"></i></button>
+                        <button class="sidebar-icon-btn" onclick="toggleTheme()" title="Toggle theme"><i class="fas fa-moon"></i></button>
+                        <button class="sidebar-icon-btn" onclick="showSettingsModal()" title="Settings"><i class="fas fa-cog"></i></button>
+                        <button class="sidebar-icon-btn" onclick="showShortcutsModal()" title="Keyboard shortcuts"><i class="fas fa-keyboard"></i></button>
+                        <button class="sidebar-icon-btn" onclick="showAboutModal()" title="About"><i class="fas fa-info-circle"></i></button>
+                    </div>
+                </div>
+                <div class="sidebar-mode-toggle">
+                    <button class="sidebar-mode-btn" id="apiSidebarModeBtnFlow" onclick="toggleMode()"><i class="fas fa-project-diagram"></i> Flow</button>
+                    <button class="sidebar-mode-btn active" id="apiSidebarModeBtnAPI" onclick="toggleMode()"><i class="fas fa-paper-plane"></i> API</button>
+                </div>
+                <div class="section">
+                    <div class="section-title">API Configuration <span class="resize-info" onclick="resetPanelWidth('api')">↔ Reset Width</span></div>
+                    <div class="form-group">
+                        <label for="apiEnvSelect"><i class="fas fa-server"></i> Environment <span class="required">*</span></label>
+                        <select id="apiEnvSelect" required>
+                            <option value="">Select environment...</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="apiAppSelect"><i class="fas fa-cube"></i> Application <span class="required">*</span></label>
+                        <select id="apiAppSelect" required disabled><option value="">Select application...</option></select>
+                    </div>
+                    <div class="form-group">
+                        <label for="apiChannelSelect"><i class="fas fa-stream"></i> Channel <span class="required">*</span></label>
+                        <select id="apiChannelSelect" required disabled><option value="">Select channel...</option></select>
+                    </div>
+                    <div class="form-group">
+                        <label for="apiMethod"><i class="fas fa-exchange-alt"></i> HTTP Method <span class="required">*</span></label>
+                        <select id="apiMethod" required>
+                            <option value="GET">GET</option>
+                            <option value="POST" selected>POST</option>
+                            <option value="PUT">PUT</option>
+                            <option value="DELETE">DELETE</option>
+                            <option value="PATCH">PATCH</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="apiPath"><i class="fas fa-link"></i> Request Path <span class="required">*</span></label>
+                        <input type="text" id="apiPath" placeholder="/api/v1/example" required />
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fas fa-cog"></i> Query Parameters</label>
+                        <div class="checkbox-group">
+                            <label class="checkbox-label"><input type="checkbox" id="apiAuthenticated" /><span class="checkbox-text">Authenticated</span></label>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="apiPayload"><i class="fas fa-code"></i> Request Payload (JSON)</label>
+                        <div class="json-editor">
+                            <div class="json-toolbar">
+                                <button class="json-btn" onclick="formatJSON('apiPayload')"><i class="fas fa-indent"></i> Format</button>
+                                <button class="json-btn" onclick="validateJSON('apiPayload')"><i class="fas fa-check-circle"></i> Validate</button>
+                            </div>
+                            <textarea id="apiPayload" placeholder='{"key": "value"}' spellcheck="false"></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div id="apiEnvConfigCard" class="env-config-card"></div>
+            </div>
+            <div class="left-panel-footer">
+                <div class="button-group">
+                    <button class="btn-primary" onclick="executeAPICall()"><i class="fas fa-paper-plane"></i><span class="btn-label">Send</span></button>
+                    <button class="btn-secondary" onclick="clearAPIForm()"><i class="fas fa-eraser"></i><span class="btn-label">Clear</span></button>
+                </div>
+            </div>
+            <div class="resize-handle" id="apiResizeHandle"></div>
+            <button class="sidebar-collapse-btn" id="apiCollapseBtn" onclick="toggleSidebar('api')" title="Collapse panel" aria-label="Collapse sidebar"><i class="fas fa-chevron-left"></i></button>
+        </div>
+
+        <div class="right-panel">
+            <div class="response-container" id="apiResponseContainer">
+                <div class="response-header">
+                    <div class="response-title"><i class="fas fa-terminal"></i> API Execution Result</div>
+                    <div class="response-actions">
+                        <div id="apiDuration" class="execution-duration" style="display:none;">
+                            <i class="fas fa-clock"></i> <span id="apiDurationCounter">00:00.00</span>
+                        </div>
+                        <button id="apiExpandCollapseBtn" class="copy-btn" onclick="apiRenderer.toggleExpandCollapseAll()" style="display:none;"><i class="fas fa-compress"></i></button>
+                        <button id="apiSideBySideBtn" class="copy-btn" onclick="toggleSideBySideBtn()" title="Toggle side-by-side view" style="display:none;"><i class="fas fa-columns"></i></button>
+                        <button class="copy-btn" onclick="postToRentry('api')"><i class="fas fa-share-alt"></i> Rentry</button>
+                        <button class="copy-btn" onclick="copyRendererOutput('api')"><i class="fas fa-copy"></i> Copy</button>
+                    </div>
+                </div>
+                <div id="apiStatus" class="status"></div>
+                <div id="apiProgressBar" class="execution-progress-bar" style="display:none;"><div class="execution-progress-bar-fill"></div></div>
+                <div id="apiOutput" class="response-output">Ready to make API calls...</div>
+            </div>
+        </div>
+    </div>
+</div>
+<button id="apiAutoScrollBtn" class="auto-scroll-btn" onclick="apiRenderer.enableAutoScroll()"><i class="fas fa-arrow-down"></i> Follow logs</button>
+
+
+
+<div class="history-panel" id="historyPanel">
+    <div class="history-header">
+        <div class="history-title"><i class="fas fa-history"></i> Execution History</div>
+        <div class="history-header-actions">
+            <button class="history-clear-btn" onclick="clearExecutionHistory()"><i class="fas fa-trash"></i></button>
+            <button class="history-close" onclick="toggleHistory()"><i class="fas fa-times"></i></button>
+        </div>
+    </div>
+    <div class="history-content" id="historyContent">
+        <div class="history-empty"><i class="fas fa-history"></i><p>No execution history yet</p></div>
+    </div>
+</div>
+
+<!-- Shortcuts Modal -->
+<div class="modal-overlay" id="shortcutsModal">
+    <div class="modal">
+        <div class="modal-header"><div class="modal-title">Keyboard Shortcuts</div><button class="modal-close" onclick="closeModal('shortcutsModal')"><i class="fas fa-times"></i></button></div>
+        <div class="modal-content">
+            <div class="shortcuts-list">
+                <div class="shortcut-item"><div class="shortcut-keys">Ctrl+Enter</div><div class="shortcut-desc">Execute</div></div>
+                <div class="shortcut-item"><div class="shortcut-keys">Ctrl+Shift+Enter</div><div class="shortcut-desc">Run All Flows</div></div>
+                <div class="shortcut-item"><div class="shortcut-keys">Ctrl+Shift+A</div><div class="shortcut-desc">Authenticate</div></div>
+                <div class="shortcut-item"><div class="shortcut-keys">Ctrl+R</div><div class="shortcut-desc">Reset Request</div></div>
+                <div class="shortcut-item"><div class="shortcut-keys">Ctrl+Shift+H</div><div class="shortcut-desc">Toggle History</div></div>
+                <div class="shortcut-item"><div class="shortcut-keys">Ctrl+?</div><div class="shortcut-desc">Show Shortcuts</div></div>
+                <div class="shortcut-item"><div class="shortcut-keys">Esc</div><div class="shortcut-desc">Close Modal</div></div>
+            </div>
+        </div>
+        <div class="modal-footer"><button class="btn-secondary" onclick="closeModal('shortcutsModal')">Close</button></div>
+    </div>
+</div>
+
+<!-- About Modal -->
+<div class="modal-overlay" id="aboutModal">
+    <div class="modal">
+        <div class="modal-header"><div class="modal-title">About Flow Executor</div><button class="modal-close" onclick="closeModal('aboutModal')"><i class="fas fa-times"></i></button></div>
+        <div class="modal-content">
+            <p><strong>A Tribute to Bad UI/UX</strong></p>
+            <p style="margin-top:16px;">Hello! 👋 I would like to extend my heartfelt gratitude to <strong>Postman</strong> for being so spectacularly, magnificently, and consistently <em>bad</em> — to a point where I had no choice but to build my own flow executor.</p>
+            <p style="margin-top:16px;font-style:italic;color:#94a3b8;">"Thank you, Postman, for the motivation." ❤️</p>
+            <p style="margin-top:24px;"><strong>Flow Executor</strong> — Built with ☕ and 😤</p>
+            <p style="margin-top:8px;">Version: 2.0.0 | © 2026 Flow Executor Team</p>
+        </div>
+        <div class="modal-footer"><button class="btn-secondary" onclick="closeModal('aboutModal')">Close</button></div>
+    </div>
+</div>
+
+<!-- Settings Modal -->
+<div class="modal-overlay" id="settingsModal">
+    <div class="modal">
+        <div class="modal-header"><div class="modal-title"><i class="fas fa-cog"></i> Application Settings</div><button class="modal-close" onclick="closeModal('settingsModal')"><i class="fas fa-times"></i></button></div>
+        <div class="modal-content">
+            <div style="margin-bottom: 20px;">
+                <label style="display: flex; align-items: center; margin-bottom: 8px; font-weight: 600; color: var(--text-primary);">
+                    <input type="checkbox" id="sideBysideSetting" onchange="toggleSideBySideSetting()" style="margin-right: 12px; width: auto; height: auto;">
+                    <span>Side-by-side Request/Response View</span>
+                </label>
+                <p style="margin: 8px 0 0 28px; font-size: 13px; color: var(--text-muted);">Display request and response content side-by-side for easier comparison</p>
+            </div>
+        </div>
+        <div class="modal-footer"><button class="btn-secondary" onclick="closeModal('settingsModal')">Close</button></div>
+    </div>
+</div>
+
+<!-- User Switcher Modal -->
+<div class="modal-overlay" id="userSwitcherModal">
+    <div class="modal">
+        <div class="modal-header"><div class="modal-title"><i class="fas fa-user-cog"></i> Switch User</div><button class="modal-close" onclick="closeModal('userSwitcherModal')"><i class="fas fa-times"></i></button></div>
+        <div class="modal-body">
+            <div class="form-group">
+                <label for="userSwitcherEnv"><i class="fas fa-server"></i> Environment <span class="required">*</span></label>
+                <select id="userSwitcherEnv" required>
+                    <option value="">Select environment...</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="userSwitcherApp"><i class="fas fa-cube"></i> Application <span class="required">*</span></label>
+                <select id="userSwitcherApp" required disabled><option value="">Select application...</option></select>
+            </div>
+            <div class="form-group">
+                <label for="userSwitcherUsername"><i class="fas fa-user"></i> Username <span class="required">*</span></label>
+                <input type="text" id="userSwitcherUsername" placeholder="Enter username" required>
+            </div>
+            <div class="form-group">
+                <label for="userSwitcherPassword"><i class="fas fa-lock"></i> Password <span class="required">*</span></label>
+                <input type="password" id="userSwitcherPassword" placeholder="Enter password" required>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-secondary" onclick="closeModal('userSwitcherModal')">Cancel</button>
+            <button class="btn-primary" onclick="switchUser()">Switch User</button>
+        </div>
+    </div>
+</div>
+
+<!-- Parameters Modal -->
+<div class="modal-overlay" id="parametersModal">
+    <div class="modal">
+        <div class="modal-header"><div class="modal-title">Supported Parameters</div><button class="modal-close" onclick="closeModal('parametersModal')"><i class="fas fa-times"></i></button></div>
+        <div class="modal-content"><div id="parametersContent"></div></div>
+        <div class="modal-footer"><button class="btn-secondary" onclick="closeModal('parametersModal')">Close</button></div>
+    </div>
+</div>
+
+<!-- Document Modal -->
+<div class="modal-overlay" id="documentModal">
+    <div class="modal" style="max-width:70vw;max-height:90vh;width:70vw;height:90vh;">
+        <div class="modal-header">
+            <div class="modal-title" id="documentModalTitle">Document Preview</div>
+            <button class="modal-close" onclick="closeDocumentModal()"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="modal-content centered" id="documentModalContent"></div>
+        <div class="modal-footer">
+            <button class="btn-secondary" onclick="downloadDocument()"><i class="fas fa-download"></i> Download</button>
+            <button class="btn-secondary" onclick="openDocumentInNewTab()">Open in New Tab</button>
+            <button class="btn-secondary" onclick="closeDocumentModal()">Close</button>
+        </div>
+    </div>
+</div>
+
+<!-- Replay Modal -->
+<div class="modal-overlay" id="replayModal">
+    <div class="modal" style="max-width:90vw;max-height:90vh;width:90vw;">
+        <div class="modal-header">
+            <div class="modal-title"><i class="fas fa-redo" style="margin-right:8px;"></i>cURL Replay</div>
+            <button class="modal-close" onclick="closeModal('replayModal')"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="modal-content" style="padding:0;">
+            <div class="response-container" id="replayResponseContainer" style="height:75vh;border:none;border-radius:0;">
+                <div class="response-header">
+                    <div class="response-title"><i class="fas fa-terminal"></i> Replay Result</div>
+                    <div class="response-actions">
+                        <div id="replayDuration" class="execution-duration" style="display:none;"><i class="fas fa-clock"></i> <span id="replayDurationCounter">00:00.00</span></div>
+                        <button id="replayExpandCollapseBtn" class="copy-btn" onclick="replayRenderer.toggleExpandCollapseAll()" style="display:none;"><i class="fas fa-compress"></i></button>
+                        <button class="copy-btn" onclick="copyToClipboard(replayRenderer.getPlainText(),'Replay result copied!')"><i class="fas fa-copy"></i> Copy</button>
+                    </div>
+                </div>
+                <div id="replayStatus" class="status"></div>
+                <div id="replayOutput" class="response-output">Ready to replay cURL...</div>
+                <button id="replayAutoScrollBtn" class="auto-scroll-btn" onclick="replayRenderer.enableAutoScroll()" style="position:absolute;bottom:16px;right:16px;"><i class="fas fa-arrow-down"></i></button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="toast" id="toast">
+    <div class="toast-icon"><i class="fas fa-check-circle"></i></div>
+    <div class="toast-message" id="toastMessage">Operation completed</div>
+    <button class="toast-close" onclick="hideToast()"><i class="fas fa-times"></i></button>
+</div>
+
+<script>
+    /* ══════════════════════════════════════════════════════════════
+       GLOBAL DATA
+       Loaded asynchronously from /flow/executor/config (returns
+       { "environments": { envName: EnvironmentConfig, ... } }).
+       flows / applications / envToAppToChannels are derived from
+       that response (with dummy/placeholder data filled in for any
+       details EnvironmentConfig does not provide).
+    ══════════════════════════════════════════════════════════════ */
+    let flows = [];
+    let envToAppToChannels = {};
+    let environmentConfigProperties = { environments: {} };
+    let applications = {};
+    let environments = [];
+    const selectedEnvironmentFromQuery = new URLSearchParams(window.location.search).get('env');
+
+    const API_SUITES_URL      = '/flow/executor/handle';
+    const API_CALL_URL        = '/flow/executor/handle-api';
+    const RUN_ALL_FLOWS_URL   = '/flow/executor/run-all-flows';
+    const CONFIG_URL          = '/flow/executor/config';
+    const DEFAULT_PANEL_WIDTH = 275;
+    const MIN_WIDTH = 260;
+    const MAX_WIDTH = 800;
+
+    /* Friendly display names for known application keys — fallback only.
+       Overridden at runtime by config.applications[<APP_KEY>].displayName */
+    const APPLICATION_FRIENDLY_NAMES = {
+        CSA: 'CSA',
+        STUDIO: 'Studio',
+        CUSTOMER: 'Customer',
+        BACKOFFICE: 'Back Office',
+        MIDDLEWARE: 'Middleware',
+        BACKEND_DATABASE: 'Backend Database',
+        MAILPIT: 'Mailpit',
+        KEYCLOAK: 'Keycloak',
+    };
+
+    /* Default channels per application — fallback only. Overridden at
+       runtime by config.applications[<APP_KEY>].supportedChannels */
+    const DEFAULT_CHANNELS_BY_APP = {
+        CSA: ['WEB'],
+        STUDIO: ['WEB'],
+        CUSTOMER: ['WEB', 'MOB'],
+        BACKOFFICE: ['WEB'],
+        MIDDLEWARE: ['API'],
+        BACKEND_DATABASE: ['API'],
+        MAILPIT: ['API'],
+        KEYCLOAK: ['API'],
+    };
+
+    /* ══════════════════════════════════════════════════════════════
+       UTILITIES
+    ══════════════════════════════════════════════════════════════ */
+    function escapeHtml(s) {
+        if (typeof s !== 'string') s = String(s ?? '');
+        return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;');
+    }
+
+    /* FIX: Collapse 3+ consecutive blank lines into max 1 blank line to prevent visual gaps */
+    function collapseBlankLines(text) {
+        return text.replace(/(\r?\n){3,}/g, '\n\n');
+    }
+
+    function highlightStepContent(escaped) {
+        return escaped
+            .replace(/&quot;([^&]*?)&quot;\s*:/g, '<span class="json-key">&quot;$1&quot;</span>:')
+            .replace(/:\s*&quot;([^&]*?)&quot;/g, ': <span class="json-string">&quot;$1&quot;</span>')
+            .replace(/:\s*(\d+\.?\d*)(?=[,}\]\s]|$)/gm, ': <span class="json-number">$1</span>')
+            .replace(/:\s*(true|false)/g, ': <span class="json-bool">$1</span>')
+            .replace(/:\s*(null)/g, ': <span class="json-null">$1</span>');
+    }
+
+
+
+    function copyToClipboard(text, successMsg = 'Copied!') {
+        navigator.clipboard.writeText(text)
+            .then(() => showToast(successMsg, 'success'))
+            .catch(() => showToast('Failed to copy', 'error'));
+    }
+
+    /* ══════════════════════════════════════════════════════════════
+       STATUS-FROM-RESPONSE HELPER
+    ══════════════════════════════════════════════════════════════ */
+    function getStatusInfo(statusValue, responseContent) {
+        const statusNum = parseInt(statusValue);
+        if (!isNaN(statusNum) && statusNum > 0) {
+            return { status: String(statusValue), isError: statusNum >= 400, isException: false };
+        }
+        if (responseContent && typeof responseContent === 'string') {
+            const m = responseContent.match(/^([a-zA-Z0-9.]+Exception)[:\s]/);
+            if (m) {
+                const short = m[1].split('.').pop();
+                return { status: short, isError: true, isException: true };
+            }
+        }
+        if (!statusValue) return { status: 'N/A', isError: true, isException: false };
+        return { status: String(statusValue), isError: false, isException: false };
+    }
+
+    /* ══════════════════════════════════════════════════════════════
+       PARSE REQUEST TEXT → method + url
+    ══════════════════════════════════════════════════════════════ */
+    function parseRequestMeta(text) {
+        const methodM = text.match(/Request method:\s*(\w+)/i);
+        const urlM    = text.match(/Request (?:URI|Uri):\s*([^\r\n]+)/i);
+        return {
+            method: methodM ? methodM[1].toUpperCase() : 'REQUEST',
+            url:    urlM    ? urlM[1].trim() : '',
         };
-        let flatDimensions = [];
-        let selectedPath = {};
+    }
 
-        document.addEventListener('DOMContentLoaded', () => {
-            loadConfiguration();
-        });
+    /* ══════════════════════════════════════════════════════════════
+       PARSE HTTP STATUS FROM RESPONSE TEXT
+    ══════════════════════════════════════════════════════════════ */
+    function parseHttpStatus(respText) {
+        const m = respText.match(/HTTP\/\d+(?:\.\d+)?\s+(\d+)/);
+        return m ? m[1] : '';
+    }
 
-        function toggleTheme() {
-            document.body.classList.toggle('dark-theme');
-            localStorage.setItem('theme', document.body.classList.contains('dark-theme') ? 'dark' : 'light');
+    /* ══════════════════════════════════════════════════════════════
+       LogRenderer — renders steps incrementally into a container div.
+    ══════════════════════════════════════════════════════════════ */
+    class LogRenderer {
+        constructor(opts) {
+            this.outputId           = opts.outputId;
+            this.statusId           = opts.statusId;
+            this.durationId         = opts.durationId;
+            this.durationCounterId  = opts.durationCounterId;
+            this.autoScrollBtnId    = opts.autoScrollBtnId;
+            this.expandCollapseBtnId = opts.expandCollapseBtnId;
+            this._reset();
         }
 
-        function loadTheme() {
-            const theme = localStorage.getItem('theme') || 'dark';
-            if (theme === 'light') {
-                document.body.classList.remove('dark-theme');
+        _reset() {
+            this.parsedSteps           = [];
+            this.pendingRequestIdx     = null;
+            this.pendingSectionStep    = null;
+            this.sectionStepsMap       = {};
+            this.manuallyCollapsed     = new Set();
+            this.manuallyExpanded      = new Set();
+            this.hasErrors             = false;
+            this.autoScrollEnabled     = true;
+            this.stepsContainer        = null;
+            this._durationInterval     = null;
+            this._durationStart        = null;
+            this._currentSectionIdx    = null;
+            this._stepDomCounter       = 0;
+            const el = this.outputEl;
+            if (el) delete el._scrollBound;
+        }
+
+        get outputEl()          { return document.getElementById(this.outputId); }
+        get statusEl()          { return document.getElementById(this.statusId); }
+        get durationEl()        { return document.getElementById(this.durationId); }
+        get durationCounterEl() { return document.getElementById(this.durationCounterId); }
+        get autoScrollBtn()     { return document.getElementById(this.autoScrollBtnId); }
+        get expandCollapseBtn() { return document.getElementById(this.expandCollapseBtnId); }
+
+        /* ── Status bar ── */
+        showLoading(msg = 'Executing...') {
+            const s = this.statusEl;
+            s.textContent = msg; s.className = 'status loading'; s.style.display = 'block';
+            this._startTimer();
+            const pb = document.getElementById(this.statusId.replace('Status','ProgressBar'));
+            if (pb) pb.style.display = 'block';
+        }
+        showSuccess(msg) {
+            const s = this.statusEl;
+            s.textContent = msg; s.className = 'status success'; s.style.display = 'block';
+            this._stopTimer();
+            const pb = document.getElementById(this.statusId.replace('Status','ProgressBar'));
+            if (pb) pb.style.display = 'none';
+        }
+        showError(msg) {
+            const s = this.statusEl;
+            s.textContent = msg; s.className = 'status error'; s.style.display = 'block';
+            this._stopTimer();
+            const pb = document.getElementById(this.statusId.replace('Status','ProgressBar'));
+            if (pb) pb.style.display = 'none';
+        }
+
+        /* ── Timer ── */
+        _startTimer() {
+            this._durationStart = Date.now();
+            this.durationEl.style.display = 'flex';
+            this.durationCounterEl.textContent = '00:00.00';
+            if (this._durationInterval) clearInterval(this._durationInterval);
+            this._durationInterval = setInterval(() => {
+                if (!this._durationStart) return;
+                const ms   = Date.now() - this._durationStart;
+                const min  = Math.floor(ms / 60000);
+                const sec  = Math.floor((ms % 60000) / 1000);
+                const cent = Math.floor((ms % 1000) / 10);
+                this.durationCounterEl.textContent =
+                    `${String(min).padStart(2,'0')}:${String(sec).padStart(2,'0')}.${String(cent).padStart(2,'0')}`;
+            }, 10);
+        }
+        _stopTimer() {
+            if (this._durationInterval) { clearInterval(this._durationInterval); this._durationInterval = null; }
+            this._durationStart = null;
+        }
+
+        /* ── Auto-scroll ── */
+        enableAutoScroll() {
+            this.autoScrollEnabled = true;
+            if (this.autoScrollBtn) this.autoScrollBtn.classList.remove('visible');
+            const sc = this.outputEl;
+            if (sc) sc.scrollTop = sc.scrollHeight;
+        }
+        _scrollToBottom() {
+            if (!this.autoScrollEnabled) return;
+            const sc = this.outputEl;
+            if (sc) sc.scrollTop = sc.scrollHeight;
+        }
+        _bindScrollListener() {
+            const el = this.outputEl;
+            if (!el || el._scrollBound) return;
+            el._scrollBound = true;
+            el.addEventListener('scroll', () => {
+                const dist = el.scrollHeight - el.clientHeight - el.scrollTop;
+                if (dist < 60) {
+                    this.autoScrollEnabled = true;
+                    if (this.autoScrollBtn) this.autoScrollBtn.classList.remove('visible');
+                } else {
+                    this.autoScrollEnabled = false;
+                    if (this.autoScrollBtn) this.autoScrollBtn.classList.add('visible');
+                }
+            });
+        }
+
+        /* ── Public entry point ── */
+        startExecution() {
+            this._reset();
+            const out = this.outputEl;
+            out.innerHTML = '';
+            const sc = document.createElement('div');
+            sc.className = 'steps-container';
+            sc.innerHTML = '';
+            out.appendChild(sc);
+            this.stepsContainer = sc;
+            this._bindScrollListener();
+            this._updateExpandCollapseBtn();
+            if (this.autoScrollBtn) this.autoScrollBtn.classList.remove('visible');
+        }
+
+        /* ── Process a batch of SSE entries ── */
+        addStreamingLogs(entries) {
+            if (!this.stepsContainer) this.startExecution();
+            let cleared = false;
+            for (const entry of entries) {
+                if (!cleared) {
+                    const placeholder = this.stepsContainer.querySelector('[data-placeholder]');
+                    if (placeholder) { placeholder.remove(); cleared = true; }
+                    else cleared = true;
+                }
+                this._processEntry(entry);
+            }
+            this._scrollToBottom();
+            this._updateExpandCollapseBtn();
+        }
+
+        /* ══════════════════════════════════════════════════════════════
+           CORE: process one SSE entry
+        ══════════════════════════════════════════════════════════════ */
+        _processEntry(entry) {
+            const kind = (entry.kind || 'DOCUMENT').toUpperCase();
+
+            if (kind === 'ERROR') this.hasErrors = true;
+
+            if (kind === 'REQUEST') {
+                this._handleRequest(entry);
+            } else if (kind === 'RESPONSE') {
+                this._handleResponse(entry);
+            } else if (kind === 'SECTION') {
+                this._handleSection(entry);
+            } else if (kind === 'END_SECTION') {
+                this._handleEndSection();
+            } else if (['DOCUMENT','SUCCESS','WARNING','ERROR','INFO','SQL','JSON','MARKDOWN'].includes(kind)) {
+                this._handleLog(entry, kind);
+            } else if (kind === 'INSIGHT') {
+                this._handleInsight(entry);
             }
         }
 
-        async function loadConfiguration() {
-            try {
-                const response = await fetch(API_CONFIG);
-                config = await response.json();
-                flatDimensions = flattenDimensions(config.dimensions);
-                renderDimensionSelects();
-                populateHandlers();
-                log('✅ Configuration loaded successfully');
-            } catch (error) {
-                log('❌ Error loading configuration: ' + error.message, 'error');
+        /* ── REQUEST: render a pending step card immediately ── */
+        _handleRequest(entry) {
+            const reqText = entry.data || '';
+            const { method, url } = parseRequestMeta(reqText);
+            const domId = `step-${++this._stepDomCounter}`;
+
+            const stepData = {
+                type: 'step',
+                domId,
+                method,
+                url,
+                status: '',
+                requestContent:  reqText,
+                responseContent: '',
+                metadata: entry.metadata || {},
+                duration: null,
+                requestTimestamp: Number(entry.timestamp) || Date.now(),
+                pending: true,
+            };
+
+            if (this._currentSectionIdx !== null) {
+                const section = this.parsedSteps[this._currentSectionIdx];
+                const sectionStepId = domId;
+                section.items.push(stepData);
+                this.sectionStepsMap[sectionStepId] = stepData;
+                this.pendingRequestIdx = null;
+                this.pendingSectionStep = { sectionIdx: this._currentSectionIdx, stepId: sectionStepId, stepData };
+                this._appendSectionStepDOM(section, stepData, sectionStepId);
+            } else {
+                this.parsedSteps.push(stepData);
+                this.pendingRequestIdx = this.parsedSteps.length - 1;
+                this.pendingSectionStep = null;
+                this._appendRootStepDOM(stepData, this.parsedSteps.length - 1);
             }
         }
 
-        function flattenDimensions(dimensions) {
-            const flat = [];
-            function traverse(dims) {
-                if (!dims || dims.length === 0) return;
-                dims.forEach(dim => {
-                    flat.push(dim);
-                    if (dim.children && dim.children.length > 0) {
-                        traverse(dim.children);
-                    }
-                });
+        /* ── RESPONSE: patch the pending step in-place ── */
+        _handleResponse(entry) {
+            const respText = entry.data || '';
+            const status   = parseHttpStatus(respText);
+            const respTs   = Number(entry.timestamp) || Date.now();
+
+            let stepData = null;
+
+            if (this.pendingSectionStep) {
+                stepData = this.pendingSectionStep.stepData;
+            } else if (this.pendingRequestIdx !== null) {
+                stepData = this.parsedSteps[this.pendingRequestIdx];
             }
-            traverse(dimensions);
-            return flat;
-        }
 
-        function renderDimensionSelects() {
-            const container = document.getElementById('dimensionSelects');
-            container.innerHTML = '';
-            selectedPath = {};
-
-            if (!flatDimensions || flatDimensions.length === 0) {
-                container.innerHTML = '<p style="color: var(--text-muted); font-size: 12px;">No dimensions configured</p>';
+            if (!stepData) {
+                this._appendLogCard({ kind: 'INFO', message: `📥 Response received (no matching request)\n${respText}` });
                 return;
             }
 
-            flatDimensions.forEach((dimension, idx) => {
-                renderDimensionSelect(dimension, idx, container);
-            });
-        }
+            const duration = respTs > stepData.requestTimestamp
+                ? respTs - stepData.requestTimestamp
+                : null;
 
-        function renderDimensionSelect(dimension, level, container) {
-            const formGroup = document.createElement('div');
-            formGroup.className = 'form-group';
+            stepData.status          = status;
+            stepData.responseContent = respText;
+            stepData.duration        = duration;
+            stepData.pending         = false;
 
-            const label = document.createElement('label');
-            label.htmlFor = `dim-${level}`;
-            label.innerHTML = `<i class="fas fa-layer-group"></i> ${dimension.name}${dimension.required ? '<span class="required">*</span>' : ''}`;
-
-            const select = document.createElement('select');
-            select.id = `dim-${level}`;
-            select.dataset.level = level;
-            select.dataset.dimensionKey = dimension.key;
-            select.onchange = () => onDimensionChange(level, dimension);
-
-            const defaultOption = document.createElement('option');
-            defaultOption.value = '';
-            defaultOption.textContent = `Select ${dimension.name.toLowerCase()}...`;
-            select.appendChild(defaultOption);
-
-            const values = getAvailableValues(level, dimension.key);
-            values.forEach(value => {
-                const option = document.createElement('option');
-                option.value = value.key;
-                option.textContent = value.name || value.key;
-                select.appendChild(option);
-            });
-
-            formGroup.appendChild(label);
-            formGroup.appendChild(select);
-            container.appendChild(formGroup);
-        }
-
-        function getAvailableValues(level, dimensionKey) {
-            if (level === 0) {
-                return config.configuration
-                    .filter(inst => inst.dimension === dimensionKey)
-                    .map(inst => ({ key: inst.key, name: inst.name || inst.key }));
+            // Merge metadata from the answer entry (for documents, curl info, etc.)
+            if (entry.metadata) {
+                stepData.metadata = { ...stepData.metadata, ...entry.metadata };
             }
 
-            const parentLevel = level - 1;
-            const parentSelect = document.getElementById(`dim-${parentLevel}`);
-            const parentValue = parentSelect.value;
+            this._patchStepCardDOM(stepData);
 
-            if (!parentValue) return [];
-
-            const parent = findInstance(config.configuration, parentLevel, parentValue);
-            if (!parent || !parent.children) return [];
-
-            return parent.children
-                .filter(child => child.dimension === dimensionKey)
-                .map(child => ({ key: child.key, name: child.name || child.key }));
+            this.pendingRequestIdx   = null;
+            this.pendingSectionStep  = null;
         }
 
-        function findInstance(instances, level, value, currentLevel = 0) {
-            for (let inst of instances) {
-                if (currentLevel === level && inst.key === value) return inst;
-                if (currentLevel < level && inst.children) {
-                    const result = findInstance(inst.children, level, value, currentLevel + 1);
-                    if (result) return result;
+        /* ── SECTION ── */
+        _handleSection(entry) {
+            this.pendingRequestIdx  = null;
+            this.pendingSectionStep = null;
+
+            const sectionData = {
+                type: 'section',
+                name: entry.data || 'Section',
+                items: [],
+                domId: `section-${++this._stepDomCounter}`,
+                hasError: false,
+            };
+            this.parsedSteps.push(sectionData);
+            this._currentSectionIdx = this.parsedSteps.length - 1;
+
+            const card = this._buildSectionCardDOM(sectionData, this._currentSectionIdx);
+            this.stepsContainer.appendChild(card);
+        }
+
+        /* ── END_SECTION ── */
+        _handleEndSection() {
+            this._currentSectionIdx = null;
+            this.pendingRequestIdx  = null;
+            this.pendingSectionStep = null;
+        }
+
+        /* ── LOG entry ── */
+        _handleLog(entry, kind) {
+            const text = (entry.data || entry.message || '').trim();
+            if (!text) return;
+
+            let message;
+            if (['SQL', 'JSON', 'MARKDOWN'].includes(kind)) {
+                message = text;
+            } else {
+                const icon = { SUCCESS: '✅', WARNING: '⚠️', ERROR: '❌' }[kind] || 'ℹ️';
+                message = `${icon} ${text}`;
+            }
+            const logData = { type: 'log', kind, message, metadata: entry.metadata || {} };
+
+            if (this._currentSectionIdx !== null) {
+                const section = this.parsedSteps[this._currentSectionIdx];
+                section.items.push(logData);
+                const wrapper = this.stepsContainer.querySelector(`[data-items-wrapper="${section.domId}"]`);
+                if (wrapper) wrapper.appendChild(this._buildLogCard(logData));
+                this._updateSectionCountDOM(section);
+                if (kind === 'ERROR') this._markSectionError(this._currentSectionIdx);
+            } else {
+                this.parsedSteps.push(logData);
+                this._appendLogCard(logData);
+            }
+        }
+
+        /* ── AI INSIGHT entry ── */
+        _handleInsight(entry) {
+            const text = (entry.data || entry.message || '').trim();
+            if (!text) return;
+
+            const logData = { type: 'log', kind: 'INSIGHT', message: text, metadata: entry.metadata || {} };
+
+            if (this._currentSectionIdx !== null) {
+                const section = this.parsedSteps[this._currentSectionIdx];
+                section.items.push(logData);
+                const wrapper = this.stepsContainer.querySelector(`[data-items-wrapper="${section.domId}"]`);
+                if (wrapper) wrapper.appendChild(this._buildLogCard(logData));
+                this._updateSectionCountDOM(section);
+            } else {
+                this.parsedSteps.push(logData);
+                this._appendLogCard(logData);
+            }
+        }
+
+        /* ══════════════════════════════════════════════════════════════
+           DOM BUILDERS
+        ══════════════════════════════════════════════════════════════ */
+
+        _appendRootStepDOM(stepData, idx) {
+            const card = this._buildStepCard(stepData, idx, false);
+            this.stepsContainer.appendChild(card);
+        }
+
+        _appendSectionStepDOM(section, stepData, stepId) {
+            const wrapper = this.stepsContainer.querySelector(`[data-items-wrapper="${section.domId}"]`);
+            if (!wrapper) return;
+            const card = this._buildStepCard(stepData, stepId, true);
+            wrapper.appendChild(card);
+            this._updateSectionCountDOM(section);
+        }
+
+        _buildStepCard(step, id, isSection) {
+            const card = document.createElement('div');
+            card.className = isSection ? 'section-step-card' + (step.pending ? ' pending' : '') : 'step-card' + (step.pending ? ' pending' : '');
+            card.dataset.domId = step.domId;
+
+            const header = document.createElement('div');
+            header.className = isSection ? 'section-step-header' : 'step-header';
+            header.innerHTML = this._buildStepHeaderHTML(step, id, isSection);
+
+            const details = document.createElement('div');
+            details.className = 'step-details';
+            details.style.display = 'none';
+            details.innerHTML = this._buildRequestResponseHTML(step, id, isSection);
+
+            header.addEventListener('click', (e) => {
+                if (e.target.closest('button')) return;
+                const opening = details.style.display === 'none';
+                header.classList.toggle('expanded');
+                details.style.display = opening ? 'block' : 'none';
+                if (opening) this.manuallyExpanded.add(step.domId);
+                else         this.manuallyExpanded.delete(step.domId);
+            });
+
+            card.appendChild(header);
+            card.appendChild(details);
+            return card;
+        }
+
+        _patchStepCardDOM(step) {
+            const card = this.stepsContainer.querySelector(`[data-dom-id="${step.domId}"]`);
+            if (!card) return;
+
+            card.classList.remove('pending');
+
+            const header = card.querySelector('.step-header, .section-step-header');
+            const isSection = header && header.classList.contains('section-step-header');
+
+            const wasExpanded = header && header.classList.contains('expanded');
+
+            header.innerHTML = this._buildStepHeaderHTML(step, step.domId, isSection);
+
+            const freshHeader = header.cloneNode(true);
+            header.replaceWith(freshHeader);
+            const header2 = card.querySelector('.step-header, .section-step-header');
+            header2.addEventListener('click', (e) => {
+                if (e.target.closest('button')) return;
+                const details = card.querySelector('.step-details');
+                const opening = details && details.style.display === 'none';
+                header2.classList.toggle('expanded');
+                if (details) details.style.display = opening ? 'block' : 'none';
+                if (opening) this.manuallyExpanded.add(step.domId);
+                else         this.manuallyExpanded.delete(step.domId);
+            });
+
+            const details = card.querySelector('.step-details');
+            if (details) {
+                details.innerHTML = this._buildRequestResponseHTML(step, step.domId, isSection);
+                if (wasExpanded) {
+                    header2.classList.add('expanded');
+                    details.style.display = 'block';
+                }
+            }
+        }
+
+        _buildStepHeaderHTML(step, id, isSection) {
+            const methodClass = escapeHtml(step.method || 'REQUEST');
+            const url         = escapeHtml(step.url || step.message || 'N/A');
+            const app         = step.metadata?.application;
+            const appChip     = app ? `<div class="step-app-chip">${escapeHtml(app)}</div>` : '';
+
+            let statusBadge;
+            if (step.pending) {
+                statusBadge = `<div class="step-status pending">…</div>`;
+            } else {
+                const si = getStatusInfo(step.status, step.responseContent);
+                const cls = si.isError ? 'error' : 'success';
+                statusBadge = `<div class="step-status ${cls}">${escapeHtml(si.status)}</div>`;
+            }
+
+            const durBadge = (!step.pending && step.duration !== null)
+                ? `<div class="step-duration" title="Request duration"><i class="fas fa-hourglass-end"></i> ${step.duration}ms</div>`
+                : '';
+
+            const copyBtn = !step.pending
+                ? `<button class="step-copy-btn" onclick="event.stopPropagation();_stepCopy('${step.domId}')" title="Copy req/resp" style="margin-left:auto;"><i class="fas fa-copy"></i></button>`
+                : `<span style="margin-left:auto;"></span>`;
+
+            const curlBtns = (!step.pending && step.metadata && step.metadata.curlHash)
+                ? `<button class="step-copy-btn" onclick="event.stopPropagation();_stepCopyCurl('${step.domId}')" title="Copy cURL"><i class="fas fa-terminal"></i></button>
+               <button class="step-copy-btn" onclick="event.stopPropagation();_stepReplayCurl('${step.domId}')" title="Replay cURL"><i class="fas fa-redo"></i></button>`
+                : '';
+
+            const docBtn = (!step.pending && step.metadata && step.metadata.documentPath)
+                ? `<button class="step-copy-btn" onclick="event.stopPropagation();showDocumentModal('${escapeHtml(step.metadata.documentPath.replace(/\\/g,'/').split('/').pop())}')" title="View document"><i class="fas fa-file"></i></button>`
+                : '';
+
+            const toggle = '<span class="step-toggle">▶</span>';
+
+            return `${toggle}
+            ${appChip}
+            <div class="step-method ${methodClass}">${methodClass}</div>
+            <div class="step-url" title="${url}">${url}</div>
+            ${docBtn}
+            ${copyBtn}
+            ${curlBtns}
+            ${durBadge}
+            ${statusBadge}`;
+        }
+
+        _buildRequestResponseHTML(step, id, isSection) {
+            const reqCopyFn  = `_stepCopyRequest('${step.domId}')`;
+            const respCopyFn = `_stepCopyResponse('${step.domId}')`;
+
+            let docSection = '';
+            if (step.metadata && step.metadata.documentPath) {
+                const fn = escapeHtml(step.metadata.documentPath.replace(/\\/g,'/').split('/').pop());
+                docSection = `<div class="step-section">
+                <div class="step-section-header"><span>📄 Document</span>
+                    <button class="step-section-copy-btn" onclick="event.stopPropagation();showDocumentModal('${fn}')" title="View document"><i class="fas fa-file"></i></button>
+                </div>
+                <div class="step-content" style="text-align:center;color:var(--text-muted);">${fn}</div>
+            </div>`;
+            }
+
+            /* FIX: trim + collapse multiple blank lines before rendering */
+            const reqText  = collapseBlankLines((step.requestContent  || 'No request data').trim());
+            const respText = step.responseContent
+                ? collapseBlankLines(step.responseContent.trim())
+                : null;
+
+            const respContent = respText
+                ? highlightStepContent(escapeHtml(respText))
+                : '<span style="color:#64748b;font-style:italic;">Waiting for response…</span>';
+
+            const reqSection = `<div class="step-section">
+            <div class="step-section-header"><span>📤 Request</span>
+                <button class="step-section-copy-btn" onclick="event.stopPropagation();${reqCopyFn}" title="Copy request"><i class="fas fa-copy"></i></button>
+            </div>
+            <div class="step-content">${highlightStepContent(escapeHtml(reqText))}</div>
+        </div>`;
+
+            const respSection = `<div class="step-section">
+            <div class="step-section-header"><span>📥 Response</span>
+                <button class="step-section-copy-btn" onclick="event.stopPropagation();${respCopyFn}" title="Copy response"><i class="fas fa-copy"></i></button>
+            </div>
+            <div class="step-content">${respContent}</div>
+        </div>`;
+
+            const wrapperClass = appSettings.sideBySideView ? 'step-sections-wrapper side-by-side' : 'step-sections-wrapper';
+            return `<div class="${wrapperClass}">${reqSection}${respSection}</div>${docSection}`;
+        }
+
+        /* Log card */
+        _appendLogCard(logData) {
+            this.stepsContainer.appendChild(this._buildLogCard(logData));
+        }
+        _buildLogCard(logData) {
+            const div = document.createElement('div');
+            const cls = logData.kind ? ' ' + logData.kind.toLowerCase() : '';
+            div.className = 'log-card' + cls;
+
+            const caller = logData.metadata?.caller;
+            const callerTag = caller ? `<div class="log-caller"><i class="fas fa-tag"></i> ${escapeHtml(caller)}</div>` : '';
+
+            if (logData.kind === 'INSIGHT') {
+                const md = (typeof marked !== 'undefined')
+                    ? marked.parse(logData.message || '')
+                    : `<pre>${escapeHtml(logData.message || '')}</pre>`;
+
+                let metadataTags = '';
+                const { provider, model } = logData.metadata || {};
+                const metaParts = [];
+                if (provider) metaParts.push(`<span class="metadata-badge provider-badge">${escapeHtml(provider)}</span>`);
+                if (model) metaParts.push(`<span class="metadata-badge model-badge">${escapeHtml(model)}</span>`);
+                if (metaParts.length) {
+                    metadataTags = `<div class="insight-metadata">${metaParts.join('')}</div>`;
+                }
+
+                div.innerHTML = `
+                    ${callerTag}
+                    <div class="insight-header"><i class="fas fa-brain"></i> AI Insights</div>
+                    ${metadataTags}
+                    <div class="insight-body">${md}</div>`;
+            } else if (logData.kind === 'SQL') {
+                div.innerHTML = `
+                    ${callerTag}
+                    <div class="sql-header"><i class="fas fa-database"></i> SQL</div>
+                    <pre class="sql-content">${escapeHtml(logData.message || '')}</pre>`;
+            } else if (logData.kind === 'JSON') {
+                const formatted = highlightStepContent(escapeHtml(logData.message || ''));
+                div.innerHTML = `
+                    ${callerTag}
+                    <div class="json-log-header"><i class="fas fa-code"></i> JSON</div>
+                    <div class="step-content">${formatted}</div>`;
+            } else if (logData.kind === 'MARKDOWN') {
+                const md = (typeof marked !== 'undefined')
+                    ? marked.parse(logData.message || '')
+                    : `<pre>${escapeHtml(logData.message || '')}</pre>`;
+                div.innerHTML = `
+                    ${callerTag}
+                    <div class="markdown-header"><i class="fa-brands fa-markdown"></i> Markdown</div>
+                    <div class="markdown-body">${md}</div>`;
+            } else {
+                div.innerHTML = `${callerTag}<div class="log-message">${escapeHtml(logData.message || '')}</div>`;
+            }
+            return div;
+        }
+
+        /* Section card */
+        _buildSectionCardDOM(sectionData, idx) {
+            const card = document.createElement('div');
+            card.className = 'section-card';
+            card.dataset.domId = sectionData.domId;
+
+            const header = document.createElement('div');
+            header.className = 'section-header expanded';
+            header.innerHTML = `<span class="section-toggle">▶</span>
+            <span>${escapeHtml(sectionData.name)}</span>
+            <span data-section-count="${sectionData.domId}" style="margin-left:auto;font-size:12px;opacity:.7;">0 items</span>`;
+            header.onclick = () => {
+                header.classList.toggle('expanded');
+                content.classList.toggle('expanded');
+                if (header.classList.contains('expanded')) this.manuallyCollapsed.delete(idx);
+                else this.manuallyCollapsed.add(idx);
+                this._updateExpandCollapseBtn();
+            };
+
+            const content = document.createElement('div');
+            content.className = 'section-content expanded';
+
+            const wrapper = document.createElement('div');
+            wrapper.className = 'section-items-wrapper';
+            wrapper.dataset.itemsWrapper = sectionData.domId;
+
+            content.appendChild(wrapper);
+            card.appendChild(header);
+            card.appendChild(content);
+            return card;
+        }
+
+        _updateSectionCountDOM(section) {
+            const span = this.stepsContainer.querySelector(`[data-section-count="${section.domId}"]`);
+            if (!span) return;
+            const logs  = section.items.filter(i => i.type === 'log').length;
+            const steps = section.items.filter(i => i.type === 'step').length;
+            const total = section.items.length;
+            span.textContent = `${total} item${total!==1?'s':''} (${logs} log${logs!==1?'s':''}, ${steps} API call${steps!==1?'s':''})`;
+        }
+
+        _markSectionError(idx) {
+            const section = this.parsedSteps[idx];
+            if (!section || section.hasError) return;
+            section.hasError = true;
+            const card = this.stepsContainer.querySelector(`[data-dom-id="${section.domId}"]`);
+            if (card) card.classList.add('has-error');
+        }
+
+        /* ── Expand/Collapse all sections ── */
+        toggleExpandCollapseAll() {
+            const cards    = this.stepsContainer ? this.stepsContainer.querySelectorAll('.section-card') : [];
+            const expanded = this.stepsContainer ? this.stepsContainer.querySelectorAll('.section-card .section-header.expanded') : [];
+            const allExp   = expanded.length === cards.length && cards.length > 0;
+            cards.forEach((card, i) => {
+                const h = card.querySelector('.section-header');
+                const c = card.querySelector('.section-content');
+                if (allExp) { h.classList.remove('expanded'); c.classList.remove('expanded'); }
+                else        { h.classList.add('expanded');    c.classList.add('expanded'); }
+            });
+            if (allExp) this.manuallyCollapsed = new Set([...Array(cards.length).keys()]);
+            else        this.manuallyCollapsed.clear();
+            this._updateExpandCollapseBtn();
+        }
+
+        _updateExpandCollapseBtn() {
+            const btn   = this.expandCollapseBtn;
+            const cards = this.stepsContainer ? this.stepsContainer.querySelectorAll('.section-card') : [];
+            if (!btn || cards.length === 0) { if (btn) btn.style.display = 'none'; this._updateSideBySideBtn(false); return; }
+            const exp   = this.stepsContainer.querySelectorAll('.section-card .section-header.expanded');
+            const all   = exp.length === cards.length;
+            btn.style.display = 'flex';
+            btn.innerHTML = all ? '<i class="fas fa-compress"></i>' : '<i class="fas fa-expand"></i>';
+            btn.title     = all ? 'Collapse all sections' : 'Expand all sections';
+            this._updateSideBySideBtn(true);
+        }
+
+        _updateSideBySideBtn(visible) {
+            const sbsId = this.expandCollapseBtnId.replace('ExpandCollapseBtn', 'SideBySideBtn');
+            const btn   = document.getElementById(sbsId);
+            if (!btn) return;
+            btn.style.display = visible ? 'flex' : 'none';
+            const active = appSettings.sideBySideView;
+            btn.style.background  = active ? 'var(--success-color)' : '';
+            btn.style.borderColor = active ? 'var(--success-color)' : '';
+            btn.title = active ? 'Side-by-side view: ON' : 'Side-by-side view: OFF';
+        }
+
+        /* ── Step lookup by domId ── */
+        _findStepByDomId(domId) {
+            for (const s of this.parsedSteps) {
+                if (s.domId === domId) return s;
+                if (s.type === 'section') {
+                    for (const item of s.items) {
+                        if (item.domId === domId) return item;
+                    }
                 }
             }
             return null;
         }
 
-        function onDimensionChange(changedLevel, dimension) {
-            selectedPath[dimension.key] = document.getElementById(`dim-${changedLevel}`).value;
+        /* ── Copy helpers ── */
+        copyStep(domId)         { const s = this._findStepByDomId(domId); if (s) copyToClipboard(`REQUEST:\n${s.requestContent}\n\nRESPONSE:\n${s.responseContent}`, 'Copied!'); }
+        copyRequest(domId)      { const s = this._findStepByDomId(domId); if (s) copyToClipboard(s.requestContent, 'Request copied!'); }
+        copyResponse(domId)     { const s = this._findStepByDomId(domId); if (s) copyToClipboard(s.responseContent, 'Response copied!'); }
+        copyCurl(domId)         {
+            const s = this._findStepByDomId(domId);
+            if (!s) return;
+            if (s.metadata?.curl) copyToClipboard(s.metadata.curl, 'cURL copied!');
+            else showToast('Full cURL not available in this entry', 'info');
+        }
+        async replayCurl(domId) {
+            const s = this._findStepByDomId(domId);
+            if (!s?.metadata?.curlHash) { showToast('No curl hash for replay', 'error'); return; }
+            document.getElementById('replayModal').classList.add('active');
+            const url = `/flow/executor/handle-curl?curlHash=${encodeURIComponent(s.metadata.curlHash)}`;
+            showToast('Replaying cURL request…', 'info');
+            try {
+                await replayExecutor.execute(url, {});
+                showToast('Replayed successfully!', 'success');
+            } catch(e) {
+                showToast('Replay failed: ' + e.message, 'error');
+            }
+        }
 
-            for (let i = changedLevel + 1; i < flatDimensions.length; i++) {
-                const childSelect = document.getElementById(`dim-${i}`);
-                if (childSelect) {
-                    childSelect.value = '';
-                    delete selectedPath[flatDimensions[i].key];
+        /* ── Re-render all steps with updated settings ── */
+        _rerenderAllSteps() {
+            if (!this.stepsContainer) return;
+            const items = this.stepsContainer.querySelectorAll('[data-dom-id]');
+            items.forEach(item => {
+                const domId = item.getAttribute('data-dom-id');
+                const step = this._findStepByDomId(domId);
+                if (step && step.type === 'step') {
+                    const details = item.querySelector('.step-details');
+                    if (details) {
+                        const isSection = item.querySelector('.section-step-header') !== null;
+                        details.innerHTML = this._buildRequestResponseHTML(step, domId, isSection);
+                    }
+                }
+            });
+        }
+
+        /* ── Plain-text extraction ── */
+        getPlainText() {
+            const lines = [];
+            const renderStep = (s) => {
+                const si = getStatusInfo(s.status, s.responseContent);
+                lines.push(`\n[${s.method}] ${s.url}  →  ${si.status}${s.duration ? '  ('+s.duration+'ms)' : ''}`);
+                if (s.requestContent)  lines.push('--- REQUEST ---\n' + s.requestContent);
+                if (s.responseContent) lines.push('--- RESPONSE ---\n' + s.responseContent);
+            };
+            for (const item of this.parsedSteps) {
+                if (item.type === 'log')     lines.push(item.message);
+                else if (item.type === 'step')    renderStep(item);
+                else if (item.type === 'section') {
+                    lines.push(`\n=== ${item.name} ===`);
+                    item.items.forEach(i => { if (i.type === 'log') lines.push(i.message); else if (i.type === 'step') renderStep(i); });
                 }
             }
-
-            for (let i = changedLevel + 1; i < flatDimensions.length; i++) {
-                updateDimensionSelect(i);
-            }
-
-            updateDimensionInfo();
+            return lines.join('\n');
         }
 
-        function updateDimensionSelect(level) {
-            const select = document.getElementById(`dim-${level}`);
-            if (!select) return;
+        generateMarkdown() {
+            let md = '# Flow Execution Logs\n\n';
+            const renderStep = (s) => {
+                const si  = getStatusInfo(s.status, s.responseContent);
+                const ok  = !si.isError;
+                md += `### ${ok ? '✅' : '❌'} ${s.method} ${s.url}\n\n`;
+                if (s.status)          md += `**Status:** ${s.status}\n\n`;
+                if (s.duration)        md += `**Duration:** ${s.duration}ms\n\n`;
+                if (s.requestContent)  md += `#### Request\n\n\`\`\`\n${s.requestContent}\n\`\`\`\n\n`;
+                if (s.responseContent) md += `#### Response\n\n\`\`\`\n${s.responseContent}\n\`\`\`\n\n`;
+                md += '---\n\n';
+            };
+            for (const item of this.parsedSteps) {
+                if (item.type === 'log')     md += `> ${item.message}\n\n`;
+                else if (item.type === 'step')    renderStep(item);
+                else if (item.type === 'section') {
+                    md += `## ${item.name}\n\n`;
+                    item.items.forEach(i => { if (i.type === 'log') md += `> ${i.message}\n\n`; else if (i.type === 'step') renderStep(i); });
+                }
+            }
+            return md;
+        }
+    }
 
-            const dimensionKey = select.dataset.dimensionKey;
-            const values = getAvailableValues(level, dimensionKey);
+    /* ══════════════════════════════════════════════════════════════
+       GLOBAL STEP ACTION FUNCTIONS
+    ══════════════════════════════════════════════════════════════ */
+    function _resolveRenderer(domId) {
+        const primary = document.getElementById('flowExecutorPage').classList.contains('active') ? flowRenderer
+            : apiRenderer;
+        if (primary._findStepByDomId(domId)) return primary;
+        if (replayRenderer._findStepByDomId(domId)) return replayRenderer;
+        const alt = primary === flowRenderer ? apiRenderer : flowRenderer;
+        if (alt._findStepByDomId(domId)) return alt;
+        return primary;
+    }
 
-            select.innerHTML = '';
-            const defaultOption = document.createElement('option');
-            defaultOption.value = '';
-            defaultOption.textContent = `Select ${flatDimensions[level].name.toLowerCase()}...`;
-            select.appendChild(defaultOption);
+    function _stepCopy(domId)        { _resolveRenderer(domId).copyStep(domId); }
+    function _stepCopyRequest(domId) { _resolveRenderer(domId).copyRequest(domId); }
+    function _stepCopyResponse(domId){ _resolveRenderer(domId).copyResponse(domId); }
+    function _stepCopyCurl(domId)    { _resolveRenderer(domId).copyCurl(domId); }
+    function _stepReplayCurl(domId)  { _resolveRenderer(domId).replayCurl(domId); }
 
-            values.forEach(value => {
-                const option = document.createElement('option');
-                option.value = value.key;
-                option.textContent = value.name || value.key;
-                select.appendChild(option);
-            });
+    /* ══════════════════════════════════════════════════════════════
+       INSTANTIATE RENDERERS
+    ══════════════════════════════════════════════════════════════ */
+    const flowRenderer = new LogRenderer({
+        outputId: 'flowOutput', statusId: 'flowStatus',
+        durationId: 'flowDuration', durationCounterId: 'flowDurationCounter',
+        autoScrollBtnId: 'flowAutoScrollBtn', expandCollapseBtnId: 'flowExpandCollapseBtn',
+    });
+    const apiRenderer = new LogRenderer({
+        outputId: 'apiOutput', statusId: 'apiStatus',
+        durationId: 'apiDuration', durationCounterId: 'apiDurationCounter',
+        autoScrollBtnId: 'apiAutoScrollBtn', expandCollapseBtnId: 'apiExpandCollapseBtn',
+    });
+    const replayRenderer = new LogRenderer({
+        outputId: 'replayOutput', statusId: 'replayStatus',
+        durationId: 'replayDuration', durationCounterId: 'replayDurationCounter',
+        autoScrollBtnId: 'replayAutoScrollBtn', expandCollapseBtnId: 'replayExpandCollapseBtn',
+    });
+
+    /* ══════════════════════════════════════════════════════════════
+       STREAM EXECUTOR
+    ══════════════════════════════════════════════════════════════ */
+    class StreamExecutor {
+        constructor(renderer) {
+            this.renderer        = renderer;
+            this.abortController = null;
+            this.executionId     = null;
         }
 
-        function updateDimensionInfo() {
-            const infoBadge = document.getElementById('dimensionInfo');
-            const path = flatDimensions
-                .map(dim => selectedPath[dim.key])
-                .filter(val => val);
+        async execute(url, body) {
+            if (this.abortController) { this.abortController.abort(); await new Promise(r => setTimeout(r, 50)); }
 
-            if (path.length === 0) {
-                infoBadge.style.display = 'none';
-                return;
-            }
+            this.renderer.startExecution();
+            this.renderer.showLoading('Streaming execution…');
 
-            infoBadge.textContent = '📍 Path: ' + path.join(' › ');
-            infoBadge.style.display = 'block';
-        }
-
-        function populateHandlers() {
-            const select = document.getElementById('handlerSelect');
-            select.innerHTML = '<option value="">Select a handler...</option>';
-            config.handlers.forEach((handler, idx) => {
-                const option = document.createElement('option');
-                option.value = idx;
-                option.textContent = handler.type;
-                select.appendChild(option);
-            });
-        }
-
-        function onHandlerSelect() {
-            const select = document.getElementById('handlerSelect');
-            const idx = select.value;
-            const infoDiv = document.getElementById('handlerInfo');
-
-            if (idx === '') {
-                infoDiv.classList.remove('active');
-                return;
-            }
-
-            const handler = config.handlers[idx];
-            infoDiv.innerHTML = `<strong>${handler.type}</strong><br>Pattern: <code>${handler.supportedDimensionsPattern || '.*'}</code>`;
-            infoDiv.classList.add('active');
-        }
-
-        function executeFlow() {
-            const handlerIdx = document.getElementById('handlerSelect').value;
-            const params = document.getElementById('requestInput').value;
-
-            const missingRequired = flatDimensions
-                .filter(dim => dim.required && !selectedPath[dim.key])
-                .map(dim => dim.name);
-
-            if (missingRequired.length > 0) {
-                log(`❌ Please select: ${missingRequired.join(', ')}`, 'error');
-                return;
-            }
-
-            if (!handlerIdx) {
-                log('❌ Please select a handler', 'error');
-                return;
-            }
-
-            const dimensionPath = flatDimensions
-                .map(dim => selectedPath[dim.key])
-                .filter(val => val)
-                .join('.');
-
-            const handler = config.handlers[handlerIdx];
-
-            log(`🚀 Executing handler: ${handler.type}\n📍 Dimension Path: ${dimensionPath}`);
+            this.executionId     = `${Date.now()}-${Math.random()}`;
+            const myId           = this.executionId;
+            this.abortController = new AbortController();
 
             try {
-                let parsedParams = {};
-                if (params.trim()) {
-                    parsedParams = JSON.parse(params);
+                const res = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Accept': 'text/event-stream', 'Cache-Control': 'no-cache' },
+                    body:    JSON.stringify(body),
+                    signal:  this.abortController.signal,
+                });
+
+                const headerFailed = res.headers.get('X-Execution-Status') === 'FAILED';
+                if (!res.ok || !res.body) throw new Error(`Stream unavailable (HTTP ${res.status})`);
+
+                const reader  = res.body.getReader();
+                const decoder = new TextDecoder('utf-8');
+                let   buffer  = '';
+
+                while (true) {
+                    if (this.executionId !== myId) { reader.cancel(); break; }
+                    const { value, done } = await reader.read();
+                    if (done) break;
+
+                    buffer += decoder.decode(value, { stream: true });
+                    const lines = buffer.split('\n');
+                    buffer = lines.pop() || '';
+
+                    const entries = [];
+                    for (const line of lines) {
+                        const raw = line.startsWith('data:') ? line.slice(5).trim() : line.trim();
+                        if (!raw) continue;
+                        try { entries.push(JSON.parse(raw)); }
+                        catch { entries.push({ kind: 'INFO', data: raw }); }
+                    }
+                    if (entries.length) this.renderer.addStreamingLogs(entries);
                 }
 
-                log(`✅ Handler execution would run with:\n   Handler: ${handler.type}\n   Path: ${dimensionPath}\n   Params: ${JSON.stringify(parsedParams, null, 2)}`, 'success');
-            } catch (error) {
-                log(`❌ Error: ${error.message}`, 'error');
+                if (this.executionId === myId) {
+                    if (headerFailed || this.renderer.hasErrors) this.renderer.showError('Failed — errors detected');
+                    else this.renderer.showSuccess('Completed successfully');
+                }
+            } catch(err) {
+                if (this.executionId === myId) {
+                    if (err.name === 'AbortError') showToast('Execution cancelled', 'info');
+                    else this.renderer.showError(err.message);
+                }
+            } finally {
+                if (this.executionId === myId) {
+                    this.abortController = null;
+                    this.renderer._stopTimer();
+                    if (this.renderer.autoScrollBtn) this.renderer.autoScrollBtn.classList.remove('visible');
+                }
             }
         }
+    }
 
-        function clearForm() {
-            flatDimensions.forEach((dim, idx) => {
-                const select = document.getElementById(`dim-${idx}`);
-                if (select) select.value = '';
+    const flowExecutor   = new StreamExecutor(flowRenderer);
+    const apiExecutor    = new StreamExecutor(apiRenderer);
+    const replayExecutor = new StreamExecutor(replayRenderer);
+
+    /* ══════════════════════════════════════════════════════════════
+       FLOW EXECUTOR — UI LOGIC
+    ══════════════════════════════════════════════════════════════ */
+    let selectedFlow          = null;
+    let previouslySelectedApp = null;
+    let executionHistory      = JSON.parse(localStorage.getItem('flowExecutorHistory') || '[]');
+    let currentDocumentPath   = '';
+
+    async function executeFlow() {
+        const env     = document.getElementById('envSelect').value;
+        const app     = document.getElementById('appSelect').value;
+        const channel = document.getElementById('channelSelect').value;
+        const body    = document.getElementById('requestBody').value;
+        if (!selectedFlow || !env || !channel) { showToast('Please select environment, channel, and flow', 'error'); return; }
+        let parsed;
+        try { parsed = JSON.parse(body || '{}'); } catch(e) { showToast('Invalid JSON: ' + e.message, 'error'); return; }
+        addToHistory(selectedFlow, env, app, channel, body);
+        const url = `${API_SUITES_URL}?type=${encodeURIComponent(selectedFlow)}&environment=${encodeURIComponent(env)}&application=${app}&channel=${channel}`;
+        await flowExecutor.execute(url, parsed);
+    }
+
+    async function authenticateFlow() {
+        const prev = selectedFlow;
+        selectedFlow = 'authentication';
+        await executeFlow();
+        selectedFlow = prev;
+        document.getElementById('flowSelect').value = prev || '';
+    }
+
+    async function runAllFlows() {
+        const env     = document.getElementById('envSelect').value;
+        const app     = document.getElementById('appSelect').value;
+        const channel = document.getElementById('channelSelect').value;
+        if (!env)     { showToast('Please select an environment', 'error'); return; }
+        if (!app)     { showToast('Please select an application', 'error'); return; }
+        if (!channel) { showToast('Please select a channel', 'error'); return; }
+        const url = `${RUN_ALL_FLOWS_URL}?environment=${encodeURIComponent(env)}&application=${app}&channel=${channel}`;
+        addToHistory('run-all-flows', env, app, channel, '{}');
+        await flowExecutor.execute(url, {});
+    }
+
+    function resetRequestBody() {
+        document.getElementById('requestBody').value = '{}';
+        document.getElementById('envSelect').value = '';
+        document.getElementById('appSelect').value = '';  document.getElementById('appSelect').disabled = true;
+        document.getElementById('channelSelect').value = ''; document.getElementById('channelSelect').disabled = true;
+        document.getElementById('flowSelect').value = ''; document.getElementById('flowSelect').disabled = true;
+        updateEnvConfig('flow', '');
+        showToast('Form reset', 'info');
+    }
+
+    /* ══════════════════════════════════════════════════════════════
+       API TESTER — UI LOGIC
+    ══════════════════════════════════════════════════════════════ */
+    async function executeAPICall() {
+        const env     = document.getElementById('apiEnvSelect').value;
+        const app     = document.getElementById('apiAppSelect').value;
+        const channel = document.getElementById('apiChannelSelect').value;
+        const method  = document.getElementById('apiMethod').value;
+        const path    = document.getElementById('apiPath').value;
+        const payload = document.getElementById('apiPayload').value;
+        const auth    = document.getElementById('apiAuthenticated').checked;
+        if (!env)     { showToast('Please select an environment', 'error'); return; }
+        if (!app)     { showToast('Please select an application', 'error'); return; }
+        if (!channel) { showToast('Please select a channel', 'error'); return; }
+        if (!path)    { showToast('Please enter a request path', 'error'); return; }
+        let body = {};
+        if (payload.trim()) { try { body = JSON.parse(payload); } catch(e) { showToast('Invalid JSON: ' + e.message, 'error'); return; } }
+        let url = `${API_CALL_URL}?environment=${encodeURIComponent(env)}&application=${app}&channel=${channel}&path=${encodeURIComponent(path)}&method=${method}`;
+        if (auth) url += '&authenticated=true';
+        await apiExecutor.execute(url, body);
+    }
+
+    function clearAPIForm() {
+        document.getElementById('apiPath').value    = '';
+        document.getElementById('apiPayload').value = '';
+        document.getElementById('apiMethod').value  = 'POST';
+        document.getElementById('apiAuthenticated').checked = false;
+        showToast('Form cleared', 'info');
+    }
+
+    /* ══════════════════════════════════════════════════════════════
+       COPY / RENTRY
+    ══════════════════════════════════════════════════════════════ */
+    function copyRendererOutput(tab) {
+        const r = tab === 'flow' ? flowRenderer : apiRenderer;
+        copyToClipboard(r.getPlainText(), 'Result copied to clipboard');
+    }
+
+    async function postToRentry(tab) {
+        const r   = tab === 'flow' ? flowRenderer : apiRenderer;
+        const selMap = { flow: 'flow', api: 'api' };
+        const sel = `#${selMap[tab]}ResponseContainer .copy-btn[onclick*="Rentry"]`;
+        const btn = document.querySelector(sel);
+        if (!btn) return;
+        const orig = btn.innerHTML;
+        btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Posting…';
+        try {
+            let md = r.generateMarkdown().replace(/\x00/g, '');
+            const params = new URLSearchParams(); params.append('text', md);
+            const res  = await fetch('https://rentry.co/api/new', { method: 'POST', body: params });
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            const data = await res.json();
+            let url = data.url || (data.id ? `https://rentry.co/${data.id}` : null);
+            if (!url) throw new Error('Could not determine rentry URL');
+            if (!url.startsWith('http')) url = `https://rentry.co/${url}`;
+            window.open(url, '_blank');
+            showToast('Posted to rentry.co!', 'success');
+        } catch(e) {
+            showToast('Failed to post: ' + e.message, 'error');
+        } finally {
+            btn.disabled = false; btn.innerHTML = orig;
+        }
+    }
+
+    /* ══════════════════════════════════════════════════════════════
+       JSON UTILITIES
+    ══════════════════════════════════════════════════════════════ */
+    function formatJSON(id) {
+        const ta = document.getElementById(id);
+        try { ta.value = JSON.stringify(JSON.parse(ta.value), null, 2); showToast('JSON formatted', 'success'); }
+        catch(e) { showToast('Invalid JSON: ' + e.message, 'error'); }
+    }
+    function validateJSON(id) {
+        const ta = document.getElementById(id);
+        if (!ta.value.trim()) { showToast('Empty input', 'info'); return; }
+        try { JSON.parse(ta.value); showToast('Valid JSON ✓', 'success'); }
+        catch(e) { showToast('Invalid JSON: ' + e.message, 'error'); }
+    }
+
+    /* ══════════════════════════════════════════════════════════════
+       DROPDOWN HELPERS
+    ══════════════════════════════════════════════════════════════ */
+    function humanizeSelectOption(v) {
+        return v.split(/[-_]/).map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ');
+    }
+
+    function updateApplications() {
+        const env = document.getElementById('envSelect').value;
+        const appSel = document.getElementById('appSelect');
+        const prev = appSel.value;
+        appSel.innerHTML = '<option value="">Select an application…</option>';
+        appSel.disabled = true;
+        if (env && envToAppToChannels[env]) {
+            // Filter: only show apps that have at least one flow
+            Object.keys(envToAppToChannels[env]).forEach(app => {
+                const hasFlows = flows.some(f => !f.supportedApplications || f.supportedApplications.includes(app));
+                if (!hasFlows) return; // Skip apps without any flows
+
+                const o = document.createElement('option');
+                o.value = app; o.textContent = applications[app] || humanizeSelectOption(app);
+                appSel.appendChild(o);
             });
-            selectedPath = {};
-            document.getElementById('handlerSelect').value = '';
-            document.getElementById('requestInput').value = '';
-            document.getElementById('dimensionInfo').style.display = 'none';
-            document.getElementById('handlerInfo').classList.remove('active');
+            appSel.disabled = false;
+            if (prev && envToAppToChannels[env][prev] && flows.some(f => !f.supportedApplications || f.supportedApplications.includes(prev))) appSel.value = prev;
+            else if (appSel.options.length > 1) { appSel.value = appSel.options[1].value; onApplicationChanged(); updateChannels(); return; }
         }
+        updateChannels();
+    }
 
-        function log(message, type = 'info') {
-            const output = document.getElementById('output');
-            if (output.textContent.includes('Ready to execute')) {
-                output.innerHTML = '';
+    function updateChannels() {
+        const env = document.getElementById('envSelect').value;
+        const app = document.getElementById('appSelect').value;
+        const chanSel = document.getElementById('channelSelect');
+        const flowSel = document.getElementById('flowSelect');
+        const prev = chanSel.value;
+        chanSel.innerHTML = '<option value="">Select channel…</option>';
+        chanSel.disabled = true;
+        flowSel.disabled = true;
+        if (env && app && envToAppToChannels[env]?.[app]) {
+            const channels = envToAppToChannels[env][app];
+            channels.forEach(ch => { const o = document.createElement('option'); o.value = ch; o.textContent = humanizeSelectOption(ch); chanSel.appendChild(o); });
+            chanSel.disabled = false;
+            if (prev && channels.includes(prev)) {
+                chanSel.value = prev;
+                flowSel.disabled = false;
             }
+            else if (channels.length > 0) {
+                chanSel.value = channels[0];
+                flowSel.disabled = false;  // Enable flow select when channel is auto-selected
+                updateFlows();
+                return;
+            }
+        }
+        updateFlows();
+    }
 
-            const time = new Date().toLocaleTimeString();
-            const entry = document.createElement('div');
-            entry.className = `log-entry ${type}`;
-            entry.textContent = `[${time}] ${message}`;
-            output.appendChild(entry);
-            output.scrollTop = output.scrollHeight;
+    function getMissingInvolvedApps(flow) {
+        if (!flow?.involvedApplications?.length) return [];
+        const env = document.getElementById('envSelect').value;
+        if (!env) return [];
+        const configuredApps = Object.keys(environmentConfigProperties.environments[env] || {}).map(k => k.toUpperCase());
+        return flow.involvedApplications.filter(a => !configuredApps.includes(a.toUpperCase()));
+    }
+
+    function populateFlowSelect() {
+        const app = document.getElementById('appSelect').value;
+        const flowSel = document.getElementById('flowSelect');
+        const prev = flowSel.value;
+        flowSel.innerHTML = '<option value="">Select a flow…</option>';
+        let avail = app ? flows.filter(f => !f.supportedApplications || f.supportedApplications.includes(app)) : flows;
+        const byModule = {};
+        avail.forEach(f => { const m = f.module || 'Other'; (byModule[m] = byModule[m] || []).push(f); });
+        Object.keys(byModule).sort().forEach(mod => {
+            const grp = document.createElement('optgroup'); grp.label = mod;
+            byModule[mod].forEach(f => {
+                const o = document.createElement('option');
+                o.value = f.type;
+                const missing = getMissingInvolvedApps(f);
+                o.textContent = missing.length ? `⚠ ${f.friendlyName}` : f.friendlyName;
+                if (missing.length) o.title = `Missing app config: ${missing.join(', ')}`;
+                grp.appendChild(o);
+            });
+            flowSel.appendChild(grp);
+        });
+        if (prev && avail.find(f => f.type === prev)) { flowSel.value = prev; selectedFlow = prev; }
+        else if (avail.length === 1) { flowSel.value = avail[0].type; selectedFlow = avail[0].type; selectFlow(selectedFlow); }
+        else selectedFlow = null;
+        updateFlowWarningBadge(selectedFlow);
+    }
+
+    function updateFlows() { populateFlowSelect(); }
+
+    function filterFlowOptions(query) {
+        const flowSel = document.getElementById('flowSelect');
+        const q = query.toLowerCase().trim();
+        Array.from(flowSel.options).forEach(o => { if (!o.value) return; o.hidden = q && !o.textContent.toLowerCase().includes(q); });
+        Array.from(flowSel.querySelectorAll('optgroup')).forEach(g => { g.hidden = !Array.from(g.querySelectorAll('option')).some(o => !o.hidden); });
+    }
+
+    function onApplicationChanged() {
+        const app = document.getElementById('appSelect').value;
+        if (app !== previouslySelectedApp) {
+            document.getElementById('flowSelect').value = ''; selectedFlow = null;
+            previouslySelectedApp = app; displaySupportedParameters(null);
+        }
+    }
+
+    function selectFlow(flowType) {
+        selectedFlow = flowType;
+        displaySupportedParameters(flowType);
+        updateFlowWarningBadge(flowType);
+    }
+
+    function updateFlowWarningBadge(flowType) {
+        const badge = document.getElementById('flowWarningBadge');
+        if (!badge) return;
+        if (!flowType) { badge.style.display = 'none'; return; }
+        const flow = flows.find(f => f.type === flowType);
+        const missing = getMissingInvolvedApps(flow);
+        if (!missing.length) { badge.style.display = 'none'; return; }
+        badge.style.display = 'flex';
+        const missingNames = missing.map(a => applications[a] || applications[a.toUpperCase()] || a);
+        badge.innerHTML = `<i class="fas fa-exclamation-triangle"></i> Missing app config in this env: <strong>${missingNames.join(', ')}</strong>`;
+    }
+
+    function displaySupportedParameters(flowType) {
+        const sec = document.getElementById('supportedParametersSection');
+        window.currentFlowParameters = null;
+        if (!flowType) { sec.style.display = 'none'; return; }
+        const flow = flows.find(f => f.type === flowType);
+        if (!flow?.supportedParameters || !Object.keys(flow.supportedParameters).length) { sec.style.display = 'none'; return; }
+        window.currentFlowParameters = flow.supportedParameters;
+        sec.style.display = 'block';
+    }
+
+    function initAPITesterDropdowns() {
+        document.getElementById('apiEnvSelect').addEventListener('change', function() {
+            const env = this.value;
+            const appSel = document.getElementById('apiAppSelect');
+            const chanSel = document.getElementById('apiChannelSelect');
+            appSel.innerHTML = '<option value="">Select application…</option>'; chanSel.innerHTML = '<option value="">Select channel…</option>';
+            appSel.disabled = !env; chanSel.disabled = true;
+            if (env && envToAppToChannels[env]) {
+                // Filter: only show apps that have at least one flow
+                Object.keys(envToAppToChannels[env]).forEach(app => {
+                    const hasFlows = flows.some(f => !f.supportedApplications || f.supportedApplications.includes(app));
+                    if (!hasFlows) return;
+                    const o = document.createElement('option'); o.value = app; o.textContent = applications[app] || humanizeSelectOption(app); appSel.appendChild(o);
+                });
+                // Auto-select first app
+                if (appSel.options.length > 1) appSel.value = appSel.options[1].value;
+            }
+            updateEnvConfig('api', env);
+        });
+        document.getElementById('apiAppSelect').addEventListener('change', function() {
+            const env = document.getElementById('apiEnvSelect').value;
+            const app = this.value;
+            const chanSel = document.getElementById('apiChannelSelect');
+            chanSel.innerHTML = '<option value="">Select channel…</option>'; chanSel.disabled = !app;
+            if (env && app && envToAppToChannels[env]?.[app]) {
+                envToAppToChannels[env][app].forEach(ch => { const o = document.createElement('option'); o.value = ch; o.textContent = humanizeSelectOption(ch); chanSel.appendChild(o); });
+                // Auto-select first channel
+                if (chanSel.options.length > 1) chanSel.value = chanSel.options[1].value;
+            }
+        });
+    }
+
+    /* ══════════════════════════════════════════════════════════════
+       ENV CONFIG CARD
+    ══════════════════════════════════════════════════════════════ */
+    function updateEnvConfig(tab, env) {
+        const cardId = tab === 'flow' ? 'flowEnvConfigCard' : 'apiEnvConfigCard';
+        const card = document.getElementById(cardId);
+        if (!env || !environmentConfigProperties.environments?.[env]) {
+            card.innerHTML = '<div class="env-config-header"><i class="fas fa-cog"></i> Environment Configuration</div><div class="config-section"><div style="text-align:center;color:#64748b;padding:20px;"><i class="fas fa-info-circle" style="font-size:24px;display:block;margin-bottom:8px;"></i>Select an environment</div></div>';
+            card.classList.add('active'); return;
+        }
+        const envCfg = environmentConfigProperties.environments[env];
+        let html = '<div class="env-config-header"><i class="fas fa-cog"></i> Environment Configuration</div>';
+        const globals = [];
+        if (environmentConfigProperties.authenticatorHost) globals.push({ label: 'Authenticator Host', value: environmentConfigProperties.authenticatorHost, path: 'authenticatorHost' });
+        if (envCfg.mailpitHost)       globals.push({ label: 'Mailpit Host',        value: envCfg.mailpitHost,       path: `environments.${env}.mailpitHost` });
+        if (envCfg.mailpitAuthHeader) globals.push({ label: 'Mailpit Auth Header', value: envCfg.mailpitAuthHeader, path: `environments.${env}.mailpitAuthHeader` });
+        if (globals.length) {
+            html += '<div class="config-section"><div class="config-section-title"><i class="fas fa-globe"></i> Global Settings</div><div class="config-grid">';
+            globals.forEach(g => { html += `<div class="config-property"><span class="property-label">${escapeHtml(g.label)}</span><span class="property-value editable-config" data-path="${escapeHtml(g.path)}" title="Click to edit">${escapeHtml(g.value)}</span></div>`; });
+            html += '</div></div>';
+        }
+        Object.entries(applications).forEach(([key, friendlyName]) => {
+            const cfg = envCfg[key.toLowerCase()];
+            if (!cfg || !Object.keys(cfg).length) return;
+            html += `<div class="config-section"><div class="config-section-title"><i class="fas fa-cube"></i> ${escapeHtml(friendlyName)}</div><div class="config-grid">`;
+            Object.entries(cfg).forEach(([k, v]) => {
+                if (v == null || v === '') return;
+                if (typeof v === 'object') return; // skip nested objects (credentials/parameters) in summary view
+                const label = k.replace(/([A-Z])/g,' $1').replace(/^./,s=>s.toUpperCase()).trim();
+                const path  = `environments.${env}.${key.toLowerCase()}.${k}`;
+                html += `<div class="config-property"><span class="property-label">${escapeHtml(label)}</span><span class="property-value editable-config" data-path="${escapeHtml(path)}" title="Click to edit">${escapeHtml(String(v))}</span></div>`;
+            });
+            // Surface credentials username separately (read-only display, editable)
+            if (cfg.credentials && typeof cfg.credentials === 'object') {
+                Object.entries(cfg.credentials).forEach(([ck, cv]) => {
+                    if (cv == null || cv === '') return;
+                    const label = `Credentials: ${ck.charAt(0).toUpperCase()}${ck.slice(1)}`;
+                    const path  = `environments.${env}.${key.toLowerCase()}.credentials.${ck}`;
+                    html += `<div class="config-property"><span class="property-label">${escapeHtml(label)}</span><span class="property-value editable-config" data-path="${escapeHtml(path)}" title="Click to edit">${escapeHtml(String(cv))}</span></div>`;
+                });
+            }
+            // Surface parameters map entries
+            if (cfg.parameters && typeof cfg.parameters === 'object') {
+                Object.entries(cfg.parameters).forEach(([pk, pv]) => {
+                    if (pv == null || pv === '') return;
+                    const label = `Param: ${pk}`;
+                    const path  = `environments.${env}.${key.toLowerCase()}.parameters.${pk}`;
+                    html += `<div class="config-property"><span class="property-label">${escapeHtml(label)}</span><span class="property-value editable-config" data-path="${escapeHtml(path)}" title="Click to edit">${escapeHtml(String(pv))}</span></div>`;
+                });
+            }
+            html += '</div></div>';
+        });
+        card.innerHTML = html; card.classList.add('active');
+        card.querySelectorAll('.editable-config').forEach(el => el.addEventListener('click', () => startInlineEdit(el)));
+    }
+
+    function startInlineEdit(el) {
+        if (el.querySelector('input')) return;
+        const cur = el.textContent; const path = el.dataset.path;
+        const inp = document.createElement('input'); inp.type = 'text'; inp.value = cur;
+        inp.style.cssText = 'width:100%;padding:4px 8px;border:1px solid var(--primary-color);border-radius:4px;font-size:12px;font-family:monospace;background:var(--bg-primary);color:var(--text-primary);';
+        el.textContent = ''; el.appendChild(inp); inp.focus(); inp.select();
+        const save = () => { el.textContent = inp.value; if (inp.value !== cur) { setNestedValue(environmentConfigProperties, path, inp.value); showToast('Config updated (in-memory)', 'success'); } };
+        inp.addEventListener('blur', save);
+        inp.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); inp.blur(); } if (e.key === 'Escape') el.textContent = cur; });
+    }
+
+    function setNestedValue(obj, path, value) {
+        const keys = path.split('.'); let cur = obj;
+        for (let i = 0; i < keys.length - 1; i++) { if (!cur[keys[i]]) cur[keys[i]] = {}; cur = cur[keys[i]]; }
+        cur[keys[keys.length - 1]] = value;
+    }
+
+    /* ══════════════════════════════════════════════════════════════
+       HISTORY
+    ══════════════════════════════════════════════════════════════ */
+    function addToHistory(flowType, environment, application, channel, requestBody) {
+        const item = { id: Date.now().toString(), flowType, environment, application, channel, requestBody, timestamp: new Date().toISOString() };
+        executionHistory.unshift(item);
+        if (executionHistory.length > 50) executionHistory = executionHistory.slice(0, 50);
+        localStorage.setItem('flowExecutorHistory', JSON.stringify(executionHistory));
+        if (document.getElementById('historyPanel').classList.contains('active')) renderHistory();
+    }
+
+    function toggleHistory() {
+        const p = document.getElementById('historyPanel');
+        p.classList.toggle('active');
+        if (p.classList.contains('active')) { executionHistory = JSON.parse(localStorage.getItem('flowExecutorHistory') || '[]'); renderHistory(); }
+    }
+
+    function renderHistory() {
+        const c = document.getElementById('historyContent');
+        if (!executionHistory.length) { c.innerHTML = '<div class="history-empty"><i class="fas fa-history"></i><p>No execution history yet</p></div>'; return; }
+        c.innerHTML = executionHistory.slice(0,20).map(item => `
+        <div class="history-item">
+            <div class="history-item-header"><div class="history-item-title">${escapeHtml(item.flowType||'Unknown')}</div><div class="history-item-time">${new Date(item.timestamp).toLocaleString()}</div></div>
+            <div class="history-item-details">
+                <div class="history-item-detail"><i class="fas fa-server"></i> ${escapeHtml(item.environment)}</div>
+                <div class="history-item-detail"><i class="fas fa-cube"></i> ${escapeHtml(item.application)}</div>
+                <div class="history-item-detail"><i class="fas fa-stream"></i> ${escapeHtml(item.channel)}</div>
+            </div>
+            <div class="history-item-actions"><button class="history-action-btn" onclick="executeFromHistoryItem('${item.id}')"><i class="fas fa-play"></i> Run</button></div>
+        </div>`).join('');
+    }
+
+    function executeFromHistoryItem(id) {
+        const item = executionHistory.find(h => h.id === id);
+        if (!item) return;
+        document.getElementById('envSelect').value = item.environment;
+        updateEnvConfig('flow', item.environment); updateApplications();
+        document.getElementById('appSelect').value = item.application;
+        onApplicationChanged(); updateChannels();
+        document.getElementById('channelSelect').value = item.channel;
+        document.getElementById('flowSelect').value    = item.flowType; selectFlow(item.flowType);
+        document.getElementById('requestBody').value   = item.requestBody;
+        toggleHistory(); executeFlow();
+    }
+
+    function clearExecutionHistory() {
+        if (!confirm('Clear all execution history?')) return;
+        executionHistory = []; localStorage.setItem('flowExecutorHistory', JSON.stringify(executionHistory)); renderHistory();
+    }
+
+    /* ══════════════════════════════════════════════════════════════
+       PARAMETERS MODAL
+    ══════════════════════════════════════════════════════════════ */
+    function showParametersModal() {
+        if (!window.currentFlowParameters) return;
+        let html = '';
+        for (const [name, desc] of Object.entries(window.currentFlowParameters)) {
+            html += `<div style="margin-bottom:16px;padding-bottom:16px;border-bottom:1px solid var(--border-color);">
+            <div style="font-weight:600;color:var(--text-primary);margin-bottom:6px;">${escapeHtml(name)}</div>
+            <div style="color:var(--text-secondary);font-size:13px;">${escapeHtml(desc)}</div>
+            <button class="json-btn" onclick="addParameterToBody('${name}')" style="margin-top:8px;"><i class="fas fa-plus"></i> Add to Request</button>
+        </div>`;
+        }
+        document.getElementById('parametersContent').innerHTML = html;
+        document.getElementById('parametersModal').classList.add('active');
+    }
+
+    function addParameterToBody(paramName) {
+        const ta = document.getElementById('requestBody');
+        try {
+            let json = ta.value.trim() ? JSON.parse(ta.value) : {};
+            if (!json.hasOwnProperty(paramName)) { json[paramName] = ''; ta.value = JSON.stringify(json, null, 2); showToast(`'${paramName}' added`, 'success'); }
+            else showToast(`'${paramName}' already exists`, 'info');
+        } catch(e) { showToast('Invalid JSON in request body', 'error'); }
+    }
+
+    /* ══════════════════════════════════════════════════════════════
+       DOCUMENT MODAL
+    ══════════════════════════════════════════════════════════════ */
+    function showDocumentModal(fileName) {
+        currentDocumentPath = fileName;
+        const isImage = /\.(jpg|jpeg|png|gif|webp)$/i.test(fileName);
+        const isPdf   = /\.pdf$/i.test(fileName);
+        document.getElementById('documentModalTitle').textContent = fileName;
+        const content = document.getElementById('documentModalContent');
+        if (isImage)    content.innerHTML = `<img src="/download/${fileName}" alt="Document" style="width:100%;height:100%;object-fit:contain;">`;
+        else if (isPdf) content.innerHTML = `<embed src="/download/${fileName}" type="application/pdf" style="width:100%;height:100%;"/>`;
+        else            content.innerHTML = `<div style="text-align:center;color:var(--text-muted);"><i class="fas fa-file" style="font-size:48px;display:block;margin-bottom:12px;"></i><p>${escapeHtml(fileName)}</p></div>`;
+        document.getElementById('documentModal').classList.add('active');
+    }
+    function closeDocumentModal() { document.getElementById('documentModal').classList.remove('active'); currentDocumentPath = ''; }
+    function openDocumentInNewTab() { if (currentDocumentPath) window.open(`/download/${currentDocumentPath}`, '_blank'); }
+    function downloadDocument() {
+        if (!currentDocumentPath) return;
+        const a = document.createElement('a'); a.href = `/download/${currentDocumentPath}`; a.download = currentDocumentPath;
+        document.body.appendChild(a); a.click(); document.body.removeChild(a);
+        showToast(`Downloading ${currentDocumentPath}`, 'success');
+    }
+
+    /* ══════════════════════════════════════════════════════════════
+       MODALS
+    ══════════════════════════════════════════════════════════════ */
+    function showShortcutsModal()    { document.getElementById('shortcutsModal').classList.add('active'); }
+    function showAboutModal()        { document.getElementById('aboutModal').classList.add('active'); }
+    function showUserSwitcherModal() {
+        document.getElementById('userSwitcherModal').classList.add('active');
+        ['userSwitcherEnv','userSwitcherApp','userSwitcherUsername','userSwitcherPassword'].forEach(id => {
+            const el = document.getElementById(id);
+            el.value = ''; if (id === 'userSwitcherApp') el.disabled = true;
+        });
+    }
+    function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+
+    ['shortcutsModal','aboutModal','userSwitcherModal','parametersModal','documentModal','replayModal'].forEach(id => {
+        document.getElementById(id).addEventListener('click', function(e) {
+            if (e.target === this) { if (id === 'documentModal') closeDocumentModal(); else closeModal(id); }
+        });
+    });
+
+    function switchUser() {
+        const env      = document.getElementById('userSwitcherEnv').value;
+        const app      = document.getElementById('userSwitcherApp').value;
+        const username = document.getElementById('userSwitcherUsername').value.trim();
+        const password = document.getElementById('userSwitcherPassword').value.trim();
+        if (!env || !app || !username || !password) { showToast('All fields required', 'error'); return; }
+        const btn = document.querySelector('#userSwitcherModal .btn-primary');
+        const orig = btn.innerHTML; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Switching…'; btn.disabled = true;
+        const params = new URLSearchParams(); params.append('environment', env); params.append('application', app); params.append('username', username); params.append('password', password);
+        fetch('/flow/executor/update-configuration', { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: params })
+            .then(r => { if (r.ok) { showToast(`Switched to ${username} (${env}/${app})`, 'success'); closeModal('userSwitcherModal'); } else throw new Error(`HTTP ${r.status}`); })
+            .catch(e => showToast('Failed: ' + e.message, 'error'))
+            .finally(() => { btn.innerHTML = orig; btn.disabled = false; });
+    }
+
+    /* ══════════════════════════════════════════════════════════════
+       TOAST
+    ══════════════════════════════════════════════════════════════ */
+    let toastTimer;
+    function showToast(msg, type = 'info') {
+        const toast = document.getElementById('toast');
+        document.getElementById('toastMessage').textContent = msg.replace(/\s+/g,' ').trim();
+        toast.className = `toast ${type}`;
+        toast.querySelector('.toast-icon i').className = type==='success' ? 'fas fa-check-circle' : type==='error' ? 'fas fa-exclamation-circle' : 'fas fa-info-circle';
+        toast.classList.add('show');
+        clearTimeout(toastTimer); toastTimer = setTimeout(hideToast, 5000);
+    }
+    function hideToast() { document.getElementById('toast').classList.remove('show'); }
+
+    /* ══════════════════════════════════════════════════════════════
+       THEME
+    ══════════════════════════════════════════════════════════════ */
+    function _updateThemeIcons(isDark) {
+        document.querySelectorAll('.sidebar-icon-btn[onclick*="toggleTheme"] i, #themeToggle i').forEach(i => { i.className = isDark ? 'fas fa-sun' : 'fas fa-moon'; });
+    }
+    function toggleTheme() {
+        const isDark = document.body.classList.toggle('dark-theme');
+        _updateThemeIcons(isDark); localStorage.setItem('theme', isDark ? 'dark' : 'light');
+    }
+    function initTheme() {
+        const isDark = (localStorage.getItem('theme') || 'dark') === 'dark';
+        if (isDark) document.body.classList.add('dark-theme'); else document.body.classList.remove('dark-theme');
+        _updateThemeIcons(isDark);
+    }
+
+    /* ══════════════════════════════════════════════════════════════
+       APPLICATION SETTINGS
+    ══════════════════════════════════════════════════════════════ */
+    let appSettings = {
+        sideBySideView: false
+    };
+
+    function loadAppSettings() {
+        const saved = localStorage.getItem('appSettings');
+        if (saved) {
+            try {
+                appSettings = { ...appSettings, ...JSON.parse(saved) };
+            } catch (e) {
+                console.error('Failed to parse app settings:', e);
+            }
+        }
+        updateSettingsUI();
+    }
+
+    function saveAppSettings() {
+        localStorage.setItem('appSettings', JSON.stringify(appSettings));
+    }
+
+    function updateSettingsUI() {
+        const checkbox = document.getElementById('sideBySideSetting');
+        if (checkbox) checkbox.checked = appSettings.sideBySideView;
+    }
+
+    function toggleSideBySideSetting() {
+        appSettings.sideBySideView = !appSettings.sideBySideView;
+        saveAppSettings();
+        reRenderCurrentResults();
+        updateSettingsUI();
+        _syncSideBySideBtns();
+        showToast(`Side-by-side view ${appSettings.sideBySideView ? 'enabled' : 'disabled'}`, 'success');
+    }
+
+    function toggleSideBySideBtn() {
+        appSettings.sideBySideView = !appSettings.sideBySideView;
+        saveAppSettings();
+        reRenderCurrentResults();
+        updateSettingsUI();
+        _syncSideBySideBtns();
+        showToast(`Side-by-side view ${appSettings.sideBySideView ? 'enabled' : 'disabled'}`, 'success');
+    }
+
+    function _syncSideBySideBtns() {
+        [flowRenderer, apiRenderer, replayRenderer].forEach(r => {
+            if (r) r._updateSideBySideBtn(r.stepsContainer && r.stepsContainer.querySelectorAll('.section-card').length > 0);
+        });
+    }
+
+    function reRenderCurrentResults() {
+        const flowPage = document.getElementById('flowExecutorPage');
+        const apiPage = document.getElementById('apiTesterPage');
+        if (flowPage.classList.contains('active') && flowRenderer && flowRenderer.stepsContainer) {
+            flowRenderer._rerenderAllSteps();
+        } else if (apiPage.classList.contains('active') && apiRenderer && apiRenderer.stepsContainer) {
+            apiRenderer._rerenderAllSteps();
+        }
+    }
+
+    function showSettingsModal() {
+        document.getElementById('settingsModal').classList.add('active');
+    }
+
+    /* ══════════════════════════════════════════════════════════════
+       MODE TOGGLE
+    ══════════════════════════════════════════════════════════════ */
+    function toggleMode() {
+        const flowPage = document.getElementById('flowExecutorPage');
+        const apiPage  = document.getElementById('apiTesterPage');
+        let activeTab = 'flow';
+        if (apiPage.classList.contains('active'))  activeTab = 'api';
+
+        // Determine which tab to switch to based on which button was clicked
+        const clickedBtn = document.activeElement?.id || '';
+        let nextTab = 'flow';
+        if (clickedBtn.includes('API') || clickedBtn === 'apiSidebarModeBtnFlow') nextTab = 'api';
+        // Fallback: cycle through tabs
+        if (nextTab === activeTab) {
+            if (activeTab === 'flow') nextTab = 'api';
+            else nextTab = 'flow';
         }
 
-        function copyOutput() {
-            const output = document.getElementById('output');
-            navigator.clipboard.writeText(output.textContent).then(
-                () => { showStatus('Copied to clipboard!', 'success'); },
-                () => { showStatus('Failed to copy', 'error'); }
-            );
+        document.getElementById('flowExecutorPage').classList.toggle('active', nextTab === 'flow');
+        document.getElementById('apiTesterPage').classList.toggle('active',  nextTab === 'api');
+
+        // Flow sidebar buttons
+        document.getElementById('sidebarModeBtnFlow').classList.toggle('active', nextTab === 'flow');
+        document.getElementById('sidebarModeBtnAPI').classList.toggle('active',  nextTab === 'api');
+        // API sidebar buttons
+        document.getElementById('apiSidebarModeBtnFlow').classList.toggle('active', nextTab === 'flow');
+        document.getElementById('apiSidebarModeBtnAPI').classList.toggle('active',  nextTab === 'api');
+
+        syncPanelWidths();
+
+        if (nextTab === 'api') {
+            _syncDropdownsToAPI(document.getElementById('envSelect').value, document.getElementById('appSelect').value, document.getElementById('channelSelect').value);
+        } else if (nextTab === 'flow') {
+            const env = document.getElementById('apiEnvSelect').value;
+            if (env && document.getElementById('envSelect').value !== env) {
+                document.getElementById('envSelect').value = env; updateEnvConfig('flow', env); updateApplications();
+            }
+        }
+    }
+
+    function _syncDropdownsToAPI(env, app, channel) {
+        const apiEnvSel  = document.getElementById('apiEnvSelect');
+        const apiAppSel  = document.getElementById('apiAppSelect');
+        const apiChanSel = document.getElementById('apiChannelSelect');
+        apiEnvSel.value = env || ''; updateEnvConfig('api', env);
+        apiAppSel.innerHTML = '<option value="">Select application…</option>'; apiAppSel.disabled = !env;
+        if (env && envToAppToChannels[env]) {
+            // Filter: only show apps that have at least one flow
+            Object.keys(envToAppToChannels[env]).forEach(a => {
+                const hasFlows = flows.some(f => !f.supportedApplications || f.supportedApplications.includes(a));
+                if (!hasFlows) return;
+                const o = document.createElement('option'); o.value = a; o.textContent = applications[a] || humanizeSelectOption(a); apiAppSel.appendChild(o);
+            });
+            if (app && envToAppToChannels[env][app] && flows.some(f => !f.supportedApplications || f.supportedApplications.includes(app))) apiAppSel.value = app;
+            else if (apiAppSel.options.length > 1) apiAppSel.value = apiAppSel.options[1].value;
+        }
+        apiChanSel.innerHTML = '<option value="">Select channel…</option>';
+        const selApp = apiAppSel.value; apiChanSel.disabled = !selApp;
+        if (env && selApp && envToAppToChannels[env]?.[selApp]) {
+            envToAppToChannels[env][selApp].forEach(ch => { const o = document.createElement('option'); o.value = ch; o.textContent = humanizeSelectOption(ch); apiChanSel.appendChild(o); });
+            if (channel && envToAppToChannels[env][selApp].includes(channel)) apiChanSel.value = channel;
+            else if (apiChanSel.options.length > 1) apiChanSel.value = apiChanSel.options[1].value;
+        }
+    }
+
+    /* ══════════════════════════════════════════════════════════════
+       RESIZABLE PANELS
+    ══════════════════════════════════════════════════════════════ */
+    let panelWidths = { flow: DEFAULT_PANEL_WIDTH, api: DEFAULT_PANEL_WIDTH };
+    let resizingTab = null;
+
+    function syncPanelWidths() {
+        const w = Math.max(panelWidths.flow, panelWidths.api);
+        const containerMap = { flow: 'flowLeftPanelContainer', api: 'apiLeftPanelContainer' };
+        ['flow','api'].forEach(t => {
+            panelWidths[t] = w;
+            const el = document.getElementById(containerMap[t]);
+            if (el) el.style.width = `${w}px`;
+        });
+        localStorage.setItem('panelWidth', String(w));
+    }
+
+    function resetPanelWidth() {
+        panelWidths.flow = DEFAULT_PANEL_WIDTH; panelWidths.api = DEFAULT_PANEL_WIDTH;
+        ['flowLeftPanelContainer','apiLeftPanelContainer'].forEach(id => { const el = document.getElementById(id); if (el) el.style.width = `${DEFAULT_PANEL_WIDTH}px`; });
+        localStorage.setItem('panelWidth', String(DEFAULT_PANEL_WIDTH));
+        showToast('Panel width reset', 'info');
+    }
+
+    function loadPanelWidth() {
+        const saved = parseInt(localStorage.getItem('panelWidth') || String(DEFAULT_PANEL_WIDTH));
+        panelWidths.flow = saved; panelWidths.api = saved;
+        ['flowLeftPanelContainer','apiLeftPanelContainer'].forEach(id => { const el = document.getElementById(id); if (el) el.style.width = `${saved}px`; });
+    }
+
+    function setupResizablePanel(handleId, containerId, tab) {
+        const handle    = document.getElementById(handleId);
+        const container = document.getElementById(containerId);
+        if (!handle || !container) return;
+        const pageMap = { flow: 'flowExecutorPage', api: 'apiTesterPage' };
+        const containerMap = { flow: 'flowLeftPanelContainer', api: 'apiLeftPanelContainer' };
+        handle.addEventListener('mousedown', e => {
+            e.preventDefault(); resizingTab = tab; handle.classList.add('active');
+            document.body.style.cursor = 'col-resize'; document.body.style.userSelect = 'none';
+        });
+        document.addEventListener('mousemove', e => {
+            if (resizingTab !== tab) return;
+            const pageEl = document.getElementById(pageMap[tab]);
+            const outer  = pageEl?.querySelector('.container');
+            if (!outer) return;
+            const w = Math.max(MIN_WIDTH, Math.min(MAX_WIDTH, e.clientX - outer.getBoundingClientRect().left));
+            panelWidths[tab] = w; container.style.width = `${w}px`;
+            ['flow','api'].forEach(t => {
+                if (t === tab) return;
+                panelWidths[t] = w;
+                const el = document.getElementById(containerMap[t]);
+                if (el) el.style.width = `${w}px`;
+            });
+            localStorage.setItem('panelWidth', String(w));
+        });
+        document.addEventListener('mouseup', () => {
+            if (resizingTab !== tab) return;
+            resizingTab = null; handle.classList.remove('active');
+            document.body.style.cursor = ''; document.body.style.userSelect = '';
+        });
+    }
+
+    /* ══════════════════════════════════════════════════════════════
+       SIDEBAR COLLAPSE
+    ══════════════════════════════════════════════════════════════ */
+    function toggleSidebar(tab) {
+        const containerMap = { flow: 'flowLeftPanelContainer', api: 'apiLeftPanelContainer' };
+        const btnMap = { flow: 'flowCollapseBtn', api: 'apiCollapseBtn' };
+        const containerId = containerMap[tab];
+        const btnId       = btnMap[tab];
+        const c = document.getElementById(containerId);
+        const b = document.getElementById(btnId);
+        const collapsed = c.classList.toggle('collapsed');
+        b.querySelector('i').className = collapsed ? 'fas fa-chevron-right' : 'fas fa-chevron-left';
+        b.title = collapsed ? 'Expand panel' : 'Collapse panel';
+        b.setAttribute('aria-label', collapsed ? 'Expand sidebar' : 'Collapse sidebar');
+        ['flow','api'].forEach(t => {
+            if (t === tab) return;
+            const oc = document.getElementById(containerMap[t]);
+            const ob = document.getElementById(btnMap[t]);
+            if (collapsed) { oc.classList.add('collapsed'); ob.querySelector('i').className = 'fas fa-chevron-right'; ob.title = 'Expand panel'; ob.setAttribute('aria-label', 'Expand sidebar'); }
+            else           { oc.classList.remove('collapsed'); ob.querySelector('i').className = 'fas fa-chevron-left'; ob.title = 'Collapse panel'; ob.setAttribute('aria-label', 'Collapse sidebar'); }
+        });
+    }
+
+    /* ══════════════════════════════════════════════════════════════
+       KEYBOARD SHORTCUTS
+    ══════════════════════════════════════════════════════════════ */
+    document.addEventListener('keydown', e => {
+        const flowActive = document.getElementById('flowExecutorPage').classList.contains('active');
+        const apiActive  = document.getElementById('apiTesterPage').classList.contains('active');
+        if (e.ctrlKey && e.key === 'Enter') { e.preventDefault(); if (flowActive) executeFlow(); else if (apiActive) executeAPICall(); }
+        if (e.ctrlKey && e.shiftKey && e.key === 'Enter') { e.preventDefault(); if (flowActive) runAllFlows(); }
+        if (e.ctrlKey && e.shiftKey && e.key === 'A') { e.preventDefault(); authenticateFlow(); }
+        if (e.ctrlKey && e.shiftKey && e.key === 'H') { e.preventDefault(); toggleHistory(); }
+        if (e.ctrlKey && e.key === '?') { e.preventDefault(); showShortcutsModal(); }
+        if (e.key === 'Escape') {
+            ['shortcutsModal','aboutModal','userSwitcherModal','parametersModal','replayModal'].forEach(id => closeModal(id));
+            closeDocumentModal();
+            const hp = document.getElementById('historyPanel');
+            if (hp.classList.contains('active')) toggleHistory();
+        }
+    });
+
+    /* ══════════════════════════════════════════════════════════════
+       CONFIG LOADING
+       /flow/executor/config now returns:
+       {
+         "environments": { envName: EnvironmentConfig, ... },
+         "handlers": [ { type, displayName, module, supportedApplications, supportedParameters }, ... ],
+         "applications": { APP_KEY: { key, displayName, supportedChannels }, ... }
+       }
+       where EnvironmentConfig = { applications: { APP_KEY: {...} }, enabled: boolean }
+    ══════════════════════════════════════════════════════════════ */
+    function buildDerivedData(data) {
+        const rawEnvironments = data.environments || {};
+        const rawApplications = data.applications || {};
+        const rawHandlers     = Array.isArray(data.handlers) ? data.handlers : [];
+
+        environments = Object.keys(rawEnvironments).filter(envName => rawEnvironments[envName]?.enabled !== false);
+
+        environmentConfigProperties = { environments: {} };
+        envToAppToChannels = {};
+        applications = {};
+
+        // Seed applications + channel info from the global "applications" catalogue
+        for (const [appKey, appMeta] of Object.entries(rawApplications)) {
+            applications[appKey] = appMeta?.displayName || APPLICATION_FRIENDLY_NAMES[appKey] || humanizeSelectOption(appKey);
+            DEFAULT_CHANNELS_BY_APP[appKey] = (appMeta?.supportedChannels && appMeta.supportedChannels.length)
+                ? appMeta.supportedChannels
+                : (DEFAULT_CHANNELS_BY_APP[appKey] || ['DEFAULT']);
         }
 
-        function showStatus(message, type = 'success') {
-            const statusEl = document.getElementById('status');
-            statusEl.textContent = message;
-            statusEl.className = `status ${type}`;
-            statusEl.style.display = 'flex';
-            setTimeout(() => { statusEl.style.display = 'none'; }, 3000);
+        for (const envName of environments) {
+            const envCfg = rawEnvironments[envName] || {};
+            const apps = envCfg.applications || {};
+
+            environmentConfigProperties.environments[envName] = {};
+            envToAppToChannels[envName] = {};
+
+            for (const [appKey, appCfg] of Object.entries(apps)) {
+                // Friendly application display name (fallback if not in catalogue)
+                if (!applications[appKey]) {
+                    applications[appKey] = APPLICATION_FRIENDLY_NAMES[appKey] || humanizeSelectOption(appKey);
+                }
+
+                // Store full app config for the env-config card (lower-cased key, as the
+                // rendering code expects environments.<env>.<appKeyLower>)
+                environmentConfigProperties.environments[envName][appKey.toLowerCase()] = appCfg;
+
+                // Channels supported by this application
+                envToAppToChannels[envName][appKey] = DEFAULT_CHANNELS_BY_APP[appKey] || ['DEFAULT'];
+            }
         }
 
-        loadTheme();
-    </script>
+        // Flows derived from the real handler catalogue
+        flows = rawHandlers.map(h => ({
+            type: h.type,
+            friendlyName: h.displayName || humanizeSelectOption(h.type || ''),
+            module: h.module || 'Other',
+            supportedApplications: (h.supportedApplications && h.supportedApplications.length) ? h.supportedApplications : null,
+            supportedParameters: h.supportedParameters || {},
+            involvedApplications: (h.involvedApplications && h.involvedApplications.length) ? h.involvedApplications : null,
+        }));
+    }
+
+    async function loadConfig() {
+        try {
+            const res = await fetch(CONFIG_URL);
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            const data = await res.json();
+            buildDerivedData(data);
+        } catch (e) {
+            showToast('Failed to load configuration: ' + e.message, 'error');
+            environments = [];
+            flows = [];
+        }
+    }
+
+    /* ══════════════════════════════════════════════════════════════
+       INIT
+    ══════════════════════════════════════════════════════════════ */
+    document.addEventListener('DOMContentLoaded', async () => {
+        initTheme();
+        loadAppSettings();
+        loadPanelWidth();
+        setupResizablePanel('flowResizeHandle', 'flowLeftPanelContainer', 'flow');
+        setupResizablePanel('apiResizeHandle',  'apiLeftPanelContainer',  'api');
+
+        await loadConfig();
+
+        // Populate environment selects with data loaded from the backend
+        ['envSelect','apiEnvSelect','userSwitcherEnv'].forEach(id => {
+            const sel = document.getElementById(id);
+            environments.forEach(env => {
+                const o = document.createElement('option');
+                o.value = env;
+                o.textContent = humanizeSelectOption(env);
+                sel.appendChild(o);
+            });
+        });
+
+        initAPITesterDropdowns();
+
+        document.getElementById('appSelect').disabled     = true;
+        document.getElementById('channelSelect').disabled = true;
+        document.getElementById('flowSelect').disabled    = true;
+        populateFlowSelect();
+
+        if (selectedEnvironmentFromQuery && environments.includes(selectedEnvironmentFromQuery)) {
+            document.getElementById('envSelect').value = selectedEnvironmentFromQuery;
+            updateEnvConfig('flow', selectedEnvironmentFromQuery);
+            updateApplications();
+        } else {
+            // Auto-select first environment
+            const envSelect = document.getElementById('envSelect');
+            if (envSelect.options.length > 1) {
+                envSelect.value = envSelect.options[1].value;
+                updateEnvConfig('flow', envSelect.value);
+                updateApplications();
+            }
+        }
+
+        _syncDropdownsToAPI(
+            document.getElementById('envSelect').value,
+            document.getElementById('appSelect').value,
+            document.getElementById('channelSelect').value
+        );
+
+        document.getElementById('envSelect').addEventListener('change', function() {
+            updateEnvConfig('flow', this.value); updateApplications();
+        });
+        document.getElementById('appSelect').addEventListener('change', function() {
+            onApplicationChanged(); updateChannels();
+        });
+        document.getElementById('channelSelect').addEventListener('change', function() {
+            document.getElementById('flowSelect').disabled = !this.value; updateFlows();
+        });
+        document.getElementById('flowSelect').addEventListener('change', function() {
+            selectFlow(this.value);
+        });
+
+        document.getElementById('userSwitcherEnv').addEventListener('change', function() {
+            const appSel = document.getElementById('userSwitcherApp');
+            appSel.innerHTML = '<option value="">Select application…</option>'; appSel.disabled = !this.value;
+            if (this.value && envToAppToChannels[this.value]) {
+                Object.keys(envToAppToChannels[this.value]).forEach(app => {
+                    const hasFlows = flows.some(f => !f.supportedApplications || f.supportedApplications.includes(app));
+                    if (!hasFlows) return;
+                    const o = document.createElement('option'); o.value = app; o.textContent = applications[app] || humanizeSelectOption(app); appSel.appendChild(o);
+                });
+                appSel.disabled = appSel.options.length <= 1;
+            }
+        });
+
+        updateEnvConfig('flow', document.getElementById('envSelect').value);
+        updateEnvConfig('api',  document.getElementById('apiEnvSelect').value);
+    });
+</script>
 </body>
 </html>
