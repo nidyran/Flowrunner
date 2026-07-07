@@ -25,6 +25,9 @@ jobs:
           java-version: 21
           cache: maven
 
+      - name: Build and test
+        run: mvn -B verify
+
       - name: Generate Javadoc
         run: mvn -B javadoc:javadoc
 
