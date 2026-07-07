@@ -1,16 +1,18 @@
 /*
- * Copyright (c) 2026 Nidhal Ben Yarou
- * 
+ * MIT License
+ *
+ * Copyright (c) 2026 Flowrunner Contributors
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in all
  * copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -18,30 +20,40 @@
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
- * 
  */
-package dev.flowrunner;
+package dev.flowrunner.api;
 
-import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.TestConstructor;
+import org.springframework.test.context.TestConstructor.AutowireMode;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.web.context.WebApplicationContext;
 
 /**
- * Covers application bootstrap: the Spring context starts with the default
- * (empty) configuration, including the startup validation run, both through
- * the test context and through the {@code main} entry point.
+ * Covers the FlowrunnerController dashboard endpoint.
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-class FlowrunnerApplicationTests {
+@TestConstructor(autowireMode = AutowireMode.ALL)
+class FlowrunnerControllerTests {
 
-    @Test
-    void contextLoads() {
+    private final WebApplicationContext context;
+
+    FlowrunnerControllerTests(WebApplicationContext context) {
+        this.context = context;
     }
 
     @Test
-    void mainMethodCanBeInvoked() {
-        assertThatCode(() -> FlowrunnerApplication.main(new String[]{}))
-                .doesNotThrowAnyException();
+    void dashboardReturnsView() {
+        MockMvc mockMvc = MockMvcBuilders.webAppContextSetup(context).build();
+
+        FlowrunnerController controller = context.getBean(FlowrunnerController.class);
+        String view = controller.dashboard(null);
+
+        assertThat(view).isEqualTo("flowrunner");
     }
 }
