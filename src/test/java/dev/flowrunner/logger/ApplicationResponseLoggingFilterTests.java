@@ -135,4 +135,36 @@ class ApplicationResponseLoggingFilterTests {
             throw new RuntimeException(e);
         }
     }
+
+    @Test
+    void enrichActiveLogEntryCreatesMetadataIfNullByReflection() {
+        FlowExecutionLogger.LogEntry entry = new FlowExecutionLogger.LogEntry();
+        entry.setKind(FlowExecutionLogger.LogEntryType.RESPONSE);
+
+        // Use reflection to set metadata to null directly
+        java.lang.reflect.Field metadataField;
+        try {
+            metadataField = FlowExecutionLogger.LogEntry.class.getDeclaredField("metadata");
+            metadataField.setAccessible(true);
+            metadataField.set(entry, null);
+        } catch (NoSuchFieldException | IllegalAccessException e) {
+            throw new RuntimeException(e);
+        }
+
+        java.lang.reflect.Field field;
+        try {
+            field = ApplicationResponseLoggingFilter.class.getDeclaredField("ACTIVE_RESPONSE_LOG_ENTRY");
+            field.setAccessible(true);
+            ThreadLocal<FlowExecutionLogger.LogEntry> threadLocal = (ThreadLocal<FlowExecutionLogger.LogEntry>) field.get(null);
+            threadLocal.set(entry);
+        } catch (NoSuchFieldException | IllegalAccessException e) {
+            throw new RuntimeException(e);
+        }
+
+        ApplicationResponseLoggingFilter.enrichActiveLogEntry("testKey", "testValue");
+
+        assertThat(entry.getMetadata())
+                .isNotNull()
+                .containsEntry("testKey", "testValue");
+    }
 }
