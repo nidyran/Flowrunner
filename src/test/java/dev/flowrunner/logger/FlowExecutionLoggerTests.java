@@ -32,6 +32,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.TestConstructor;
 
+import java.lang.reflect.Field;
 import java.util.List;
 import java.util.Map;
 
@@ -601,7 +602,7 @@ class FlowExecutionLoggerTests {
     @Test
     void ignoreLogCompleteSkipsCompletion() {
         // Access the ignore flag through reflection since it's private
-        java.lang.reflect.Field field;
+        Field field;
         try {
             field = FlowExecutionLogger.class.getDeclaredField("ignoreNextLogCompleteThreadLocal");
             field.setAccessible(true);

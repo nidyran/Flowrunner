@@ -100,7 +100,12 @@ public final class DimensionPattern {
         }
 
         public String build() {
-            return String.join(SEGMENT_SEPARATOR, segments) + (exact ? "" : ANY_DESCENDANTS);
+            String joinedSegments = String.join(SEGMENT_SEPARATOR, segments);
+            if (exact) {
+                return joinedSegments;
+            } else {
+                return joinedSegments + ANY_DESCENDANTS;
+            }
         }
     }
 }

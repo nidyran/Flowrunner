@@ -31,6 +31,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.TestConstructor;
 
+import java.lang.reflect.Field;
+
 /**
  * Covers {@link ApplicationResponseLoggingFilter} — REST Assured filter that captures
  * response details into {@link FlowExecutionLogger} entries with metadata enrichment support.
@@ -71,7 +73,7 @@ class ApplicationResponseLoggingFilterTests {
         FlowExecutionLogger.LogEntry entry = new FlowExecutionLogger.LogEntry();
         entry.setKind(FlowExecutionLogger.LogEntryType.RESPONSE);
 
-        java.lang.reflect.Field field;
+        Field field;
         try {
             field = ApplicationResponseLoggingFilter.class.getDeclaredField("ACTIVE_RESPONSE_LOG_ENTRY");
             field.setAccessible(true);
@@ -93,7 +95,7 @@ class ApplicationResponseLoggingFilterTests {
         entry.setKind(FlowExecutionLogger.LogEntryType.RESPONSE);
         entry.setData("response data");
 
-        java.lang.reflect.Field field;
+        Field field;
         try {
             field = ApplicationResponseLoggingFilter.class.getDeclaredField("ACTIVE_RESPONSE_LOG_ENTRY");
             field.setAccessible(true);
@@ -114,7 +116,7 @@ class ApplicationResponseLoggingFilterTests {
         FlowExecutionLogger.LogEntry entry = new FlowExecutionLogger.LogEntry();
         entry.setKind(FlowExecutionLogger.LogEntryType.RESPONSE);
 
-        java.lang.reflect.Field field;
+        Field field;
         try {
             field = ApplicationResponseLoggingFilter.class.getDeclaredField("ACTIVE_RESPONSE_LOG_ENTRY");
             field.setAccessible(true);
@@ -142,7 +144,7 @@ class ApplicationResponseLoggingFilterTests {
         entry.setKind(FlowExecutionLogger.LogEntryType.RESPONSE);
 
         // Use reflection to set metadata to null directly
-        java.lang.reflect.Field metadataField;
+        Field metadataField;
         try {
             metadataField = FlowExecutionLogger.LogEntry.class.getDeclaredField("metadata");
             metadataField.setAccessible(true);
@@ -151,7 +153,7 @@ class ApplicationResponseLoggingFilterTests {
             throw new RuntimeException(e);
         }
 
-        java.lang.reflect.Field field;
+        Field field;
         try {
             field = ApplicationResponseLoggingFilter.class.getDeclaredField("ACTIVE_RESPONSE_LOG_ENTRY");
             field.setAccessible(true);
