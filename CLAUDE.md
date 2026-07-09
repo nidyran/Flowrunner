@@ -49,6 +49,7 @@ Standards followed across the codebase — new code must match them:
 - Every source file carries the MIT license header (OpenRewrite enforces it).
 - Stream operations: use `.toList()` instead of `.collect(Collectors.toList())` — the method reference is cleaner and more readable.
 - Control flow: use explicit `if-else` statements instead of inline ternary operators (`? :`); avoid nested ternaries entirely. Ternaries reduce readability and maintainability.
+- Import discipline: never use fully-qualified class names (FQNs) inline in Java code (e.g. `java.lang.reflect.Field field;`). Always add a proper `import` statement at the top of the file and reference the simple class name instead (e.g. `import java.lang.reflect.Field;` then `Field field;`). Only fall back to an FQN inline when two imported types share the same simple name and the collision can't be avoided otherwise.
 
 ## API design
 
