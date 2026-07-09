@@ -33,7 +33,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
-@ConditionalOnBooleanProperty(name = "flowrunner.flow.validate-on-startup", matchIfMissing = true)
+@ConditionalOnBooleanProperty(prefix = "flowrunner.flow", name = "validate-on-startup", matchIfMissing = true)
 public class FlowConfigurationLoader implements ApplicationRunner {
 
     private final ObjectProvider<PostLoadConfigurationVisitor> postLoadConfiguration;

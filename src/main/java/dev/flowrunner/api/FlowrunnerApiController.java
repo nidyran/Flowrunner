@@ -41,9 +41,12 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @RequestMapping("/api/flowrunner")
 public class FlowrunnerApiController {
+    // TODO: claude: create a new service, and use it instead of these two
     private final FlowProperties flowProperties;
+    // TODO: claude: replace application context with injection of ObjectProvider instead ( in the new service )
     private final ApplicationContext applicationContext;
 
+    // TODO: claude both APIs should call the new service to get the response
     @GetMapping("/config")
     public ResponseEntity<FlowProperties> getConfiguration() {
         return ResponseEntity.ok(flowProperties);
@@ -54,6 +57,9 @@ public class FlowrunnerApiController {
         return ResponseEntity.ok(getAvailableHandlers());
     }
 
+    /**
+     * TODO: claude: move this to a dedicate serivce to list and map the response in the desired format.
+     */
     private List<Map<String, Object>> getAvailableHandlers() {
         return applicationContext.getBeansOfType(FlowRunnerHandler.class).values()
                 .stream()
