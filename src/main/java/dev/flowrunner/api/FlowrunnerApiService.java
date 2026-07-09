@@ -23,28 +23,36 @@
  */
 package dev.flowrunner.api;
 
+import dev.flowrunner.handlers.FlowRunnerHandler;
 import dev.flowrunner.properties.FlowProperties;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.stereotype.Service;
 
 import java.util.*;
 
-@RestController
+@Service
 @RequiredArgsConstructor
-@RequestMapping("/api/flowrunner")
-public class FlowrunnerApiController {
-    private final FlowrunnerApiService flowrunnerApiService;
+public class FlowrunnerApiService {
+    private final FlowProperties flowProperties;
+    private final ObjectProvider<FlowRunnerHandler> flowRunnerHandlers;
 
-    @GetMapping("/config")
-    public ResponseEntity<FlowProperties> getConfiguration() {
-        return ResponseEntity.ok(flowrunnerApiService.getConfiguration());
+    public FlowProperties getConfiguration() {
+        return flowProperties;
     }
 
-    @GetMapping("/handlers")
-    public ResponseEntity<List<Map<String, Object>>> getHandlers() {
-        return ResponseEntity.ok(flowrunnerApiService.getAvailableHandlers());
+    public List<Map<String, Object>> getAvailableHandlers() {
+        return flowRunnerHandlers.orderedStream()
+                .map(handler -> {
+                    Map<String, Object> handlerInfo = new LinkedHashMap<>();
+                    handlerInfo.put("type", handler.getClass().getSimpleName());
+                    handlerInfo.put("name", handler.getClass().getName());
+                    handlerInfo.put("friendlyName", handler.friendlyName());
+                    handlerInfo.put("module", handler.module());
+                    handlerInfo.put("supportedParameters", handler.getSupportedParameters());
+                    handlerInfo.put("supportedDimensionsPattern", handler.supportedDimensionsPattern());
+                    return handlerInfo;
+                })
+                .toList();
     }
 }

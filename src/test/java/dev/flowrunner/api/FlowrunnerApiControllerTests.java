@@ -121,12 +121,16 @@ class FlowrunnerApiControllerTests {
     void handlersExposeFriendlyNameModuleParametersAndRealDimensionsPattern() {
         List<Map<String, Object>> handlers = controller.getHandlers().getBody();
 
-        assertThat(handlers).hasSize(1);
-        Map<String, Object> handler = handlers.getFirst();
-        assertThat(handler.get("friendlyName")).isEqualTo("Send Sms");
-        assertThat(handler.get("module")).isEqualTo("notification");
-        assertThat(handler.get("supportedDimensionsPattern")).isEqualTo("dev\\.customer\\..*");
-        assertThat((Map<String, String>) handler.get("supportedParameters"))
+        assertThat(handlers).hasSize(2);
+        Map<String, Object> authHandler = handlers.get(0);
+        assertThat(authHandler.get("friendlyName")).isEqualTo("Authentication");
+        assertThat(authHandler.get("module")).isEqualTo("Authentication");
+
+        Map<String, Object> smsHandler = handlers.get(1);
+        assertThat(smsHandler.get("friendlyName")).isEqualTo("Send Sms");
+        assertThat(smsHandler.get("module")).isEqualTo("notification");
+        assertThat(smsHandler.get("supportedDimensionsPattern")).isEqualTo("dev\\.customer\\..*");
+        assertThat((Map<String, String>) smsHandler.get("supportedParameters"))
                 .containsEntry("phoneNumber", "Recipient phone number");
     }
 }
