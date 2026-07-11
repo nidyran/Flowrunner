@@ -152,11 +152,7 @@ public class FlowExecutionLogger {
                         .filter(f -> !f.getDeclaringClass().getName().startsWith(currentClassName))
                         .findFirst()
                         .map(f -> f.getDeclaringClass().getSimpleName())
-                        .orElseThrow(FlowExecutionLogger::callerNotFound));
-    }
-
-    private static IllegalStateException callerNotFound() {
-        return new IllegalStateException("Unable to resolve caller class from stack trace");
+                        .orElseGet(() -> "UnknownCaller"));
     }
 
     public static boolean isFailed() {

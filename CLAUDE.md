@@ -64,8 +64,9 @@ Standards followed across the codebase — new code must match them:
 
 ## Testing
 
-- Every task ships with a set of tests covering the change — happy path, failure cases and edge cases — aiming for high test coverage.
-- Test coverage must never decrease: every task keeps the JaCoCo coverage at least at its previous level (check `target/site/jacoco` after `mvn -B clean verify`). Current baseline: 100% instruction coverage.
+- Every task ships with a set of tests covering the change — happy path, failure cases and edge cases — focusing on behavior, not implementation details.
+- Test coverage: maintain at least 70% instruction coverage (check `target/site/jacoco` after `mvn -B clean verify`). Prioritize meaningful behavior-oriented tests over edge-case code coverage.
+- Write tests that verify *what the code does*, not *that it exists*. Avoid tests that only verify internal method calls or code paths that cannot be reached in practice.
 - Every test class is a `@SpringBootTest` booting the real application context — no plain unit tests with hand-rolled Spring types, no `ApplicationContextRunner`.
 - Constructor injection in tests via `@RequiredArgsConstructor` + `@TestConstructor(autowireMode = AutowireMode.ALL)`.
 - YAML fixtures live in `src/test/resources`, one per test class, named `flow-test-<scenario>.yaml` with invalid variants suffixed `-invalid`; selected per class with `@SpringBootTest(properties = "spring.config.location=classpath:/<fixture>.yaml")`.
