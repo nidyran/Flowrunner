@@ -662,4 +662,25 @@ class FlowExecutionLoggerTests {
         FlowExecutionLogger.Logger logger2 = new FlowExecutionLogger.Logger();
         assertThat(logger2.isFailed()).isFalse();
     }
+
+    @Test
+    void resolveCallerIsReliable() {
+        for (int i = 0; i < 10; i++) {
+            String caller = FlowExecutionLogger.resolveCaller();
+            assertThat(caller)
+                    .isNotBlank()
+                    .isNotEqualTo("UnknownCaller");
+        }
+    }
+
+    @Test
+    void pushDataInvokesResolveCallerAndAddsMetadata() {
+        FlowExecutionLogger.pushData("test", FlowExecutionLogger.LogEntryType.INFO);
+
+        FlowExecutionLogger.LogEntry entry = FlowExecutionLogger.getLogger().getBatchEntries().getFirst();
+        assertThat(entry.getMetadata())
+                .containsKey("caller");
+        String caller = (String) entry.getMetadata().get("caller");
+        assertThat(caller).isNotBlank().isNotEqualTo("UnknownCaller");
+    }
 }

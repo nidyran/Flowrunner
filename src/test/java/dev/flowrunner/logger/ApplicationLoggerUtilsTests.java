@@ -114,4 +114,32 @@ class ApplicationLoggerUtilsTests {
 
         assertThat(entry.getData()).contains("X");
     }
+
+    @Test
+    void createPrintStreamWritesBytesWithOffsetAndLength() {
+        ThreadLocal<FlowExecutionLogger.LogEntry> logEntry = new ThreadLocal<>();
+        FlowExecutionLogger.LogEntry entry = new FlowExecutionLogger.LogEntry();
+        logEntry.set(entry);
+
+        PrintStream printStream = ApplicationLoggerUtils.createPrintStream(logEntry);
+        byte[] data = "HelloWorld".getBytes();
+        printStream.write(data, 5, 5);
+        printStream.flush();
+
+        assertThat(entry.getData()).contains("World");
+    }
+
+    @Test
+    void createPrintStreamWritesBytesWithZeroOffset() {
+        ThreadLocal<FlowExecutionLogger.LogEntry> logEntry = new ThreadLocal<>();
+        FlowExecutionLogger.LogEntry entry = new FlowExecutionLogger.LogEntry();
+        logEntry.set(entry);
+
+        PrintStream printStream = ApplicationLoggerUtils.createPrintStream(logEntry);
+        byte[] data = "Test".getBytes();
+        printStream.write(data, 0, 4);
+        printStream.flush();
+
+        assertThat(entry.getData()).contains("Test");
+    }
 }
