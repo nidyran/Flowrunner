@@ -683,4 +683,5 @@ class FlowExecutionLoggerTests {
         String caller = (String) entry.getMetadata().get("caller");
         assertThat(caller).isNotBlank().isNotEqualTo("UnknownCaller");
     }
+
 }

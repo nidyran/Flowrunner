@@ -145,20 +145,18 @@ public class FlowExecutionLogger {
     }
 
     public static String resolveCaller() {
-        try {
-            String currentClassName = FlowExecutionLogger.class.getName();
-            Class<?> callerClass = StackWalker
-                    .getInstance(StackWalker.Option.RETAIN_CLASS_REFERENCE)
-                    .walk(frames -> frames
-                            .filter(f -> !f.getDeclaringClass().getName().startsWith(currentClassName))
-                            .findFirst()
-                            .orElseThrow(() -> new IllegalStateException("Unable to resolve caller class from stack trace")))
-                    .getDeclaringClass();
-            return callerClass.getSimpleName();
-        } catch (Exception e) {
-            log.warn("Failed to resolve caller class from stack trace, returning 'UnknownCaller'", e);
-            return "UnknownCaller";
+        String currentClassName = FlowExecutionLogger.class.getName();
+        String callerSimpleName = StackWalker
+                .getInstance(StackWalker.Option.RETAIN_CLASS_REFERENCE)
+                .walk(frames -> frames
+                        .filter(f -> !f.getDeclaringClass().getName().startsWith(currentClassName))
+                        .findFirst()
+                        .map(f -> f.getDeclaringClass().getSimpleName())
+                        .orElse(null));
+        if (callerSimpleName == null) {
+            throw new IllegalStateException("Unable to resolve caller class from stack trace");
         }
+        return callerSimpleName;
     }
 
     public static boolean isFailed() {
