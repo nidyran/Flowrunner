@@ -146,17 +146,17 @@ public class FlowExecutionLogger {
 
     public static String resolveCaller() {
         String currentClassName = FlowExecutionLogger.class.getName();
-        String callerSimpleName = StackWalker
+        return StackWalker
                 .getInstance(StackWalker.Option.RETAIN_CLASS_REFERENCE)
                 .walk(frames -> frames
                         .filter(f -> !f.getDeclaringClass().getName().startsWith(currentClassName))
                         .findFirst()
                         .map(f -> f.getDeclaringClass().getSimpleName())
-                        .orElse(null));
-        if (callerSimpleName == null) {
-            throw new IllegalStateException("Unable to resolve caller class from stack trace");
-        }
-        return callerSimpleName;
+                        .orElseThrow(FlowExecutionLogger::callerNotFound));
+    }
+
+    private static IllegalStateException callerNotFound() {
+        return new IllegalStateException("Unable to resolve caller class from stack trace");
     }
 
     public static boolean isFailed() {

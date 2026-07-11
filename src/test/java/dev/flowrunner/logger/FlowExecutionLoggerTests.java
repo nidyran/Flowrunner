@@ -684,4 +684,15 @@ class FlowExecutionLoggerTests {
         assertThat(caller).isNotBlank().isNotEqualTo("UnknownCaller");
     }
 
+    @Test
+    void callerNotFoundExceptionHasCorrectMessage() throws Exception {
+        java.lang.reflect.Method method = FlowExecutionLogger.class.getDeclaredMethod("callerNotFound");
+        method.setAccessible(true);
+        IllegalStateException exception = (IllegalStateException) method.invoke(null);
+
+        assertThat(exception)
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessage("Unable to resolve caller class from stack trace");
+    }
+
 }
