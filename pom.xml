@@ -37,7 +37,7 @@
         <maven.compiler.target>${java.version}</maven.compiler.target>
         <rewrite-maven-plugin.version>6.43.0</rewrite-maven-plugin.version>
         <rewrite-static-analysis.version>2.38.0</rewrite-static-analysis.version>
-        <rest-assured.version>6.0.0</rest-assured.version>
+        <rest-assured.version>6.0.1</rest-assured.version>
     </properties>
 
     <dependencyManagement>
